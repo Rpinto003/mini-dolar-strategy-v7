@@ -12,59 +12,114 @@ class FeatureEngineer:
         """Create feature set for machine learning model"""
         try:
             df = data.copy()
+            
+            # 1. Verificar features existentes
+            required_features = [
+                'rsi', 'macd', 'macd_hist', 'volume_ratio',
+                'volume_trend', 'atr_ratio'
+            ]
+            
+            missing_features = [f for f in required_features if f not in df.columns]
+            if missing_features:
+                logger.warning(f"Missing features: {missing_features}")
+            
+            # 2. Features de momentum
             df = self._add_momentum_features(df)
+            
+            # 3. Features de volatilidade
             df = self._add_volatility_features(df)
+            
+            # 4. Features de volume
             df = self._add_volume_features(df)
+            
+            # 5. Features de tendência
             df = self._add_trend_features(df)
-            return df.dropna()
+            
+            logger.info(f"Created features: {list(df.columns)}")
+            return df
+            
         except Exception as e:
             logger.error(f"Error creating features: {str(e)}")
             return data
     
     def _add_momentum_features(self, df: pd.DataFrame) -> pd.DataFrame:
-        df['roc_5'] = df['close'].pct_change(periods=5)
-        df['roc_10'] = df['close'].pct_change(periods=10)
-        df['momentum_5'] = df['close'] - df['close'].shift(5)
-        df['rsi_divergence'] = df['rsi'] - df['rsi'].shift(5)
+        """Add momentum-based technical indicators"""
+        # ROC (Rate of Change)
+        periods = [5, 10, 20]
+        for p in periods:
+            df[f'roc_{p}'] = df['close'].pct_change(periods=p)
+        
+        # RSI if not exists
+        if 'rsi' not in df.columns:
+            close_delta = df['close'].diff()
+            gain = (close_delta.where(close_delta > 0, 0)).rolling(window=14).mean()
+            loss = (-close_delta.where(close_delta < 0, 0)).rolling(window=14).mean()
+            rs = gain / loss
+            df['rsi'] = 100 - (100 / (1 + rs))
+        
+        # MACD if not exists
+        if 'macd' not in df.columns:
+            exp1 = df['close'].ewm(span=12, adjust=False).mean()
+            exp2 = df['close'].ewm(span=26, adjust=False).mean()
+            df['macd'] = exp1 - exp2
+            df['signal_line'] = df['macd'].ewm(span=9, adjust=False).mean()
+            df['macd_hist'] = df['macd'] - df['signal_line']
+        
         return df
     
     def _add_volatility_features(self, df: pd.DataFrame) -> pd.DataFrame:
-        window = 20
-        std = df['close'].rolling(window=window).std()
-        ma = df['close'].rolling(window=window).mean()
-        df['bb_width'] = (ma + (2 * std) - (ma - (2 * std))) / ma
-        df['atr_ratio'] = df['atr'] / df['close']
+        """Add volatility-based features"""
+        # ATR ratio if not exists
+        if 'atr_ratio' not in df.columns:
+            tr = pd.DataFrame()
+            tr['h-l'] = df['high'] - df['low']
+            tr['h-pc'] = abs(df['high'] - df['close'].shift())
+            tr['l-pc'] = abs(df['low'] - df['close'].shift())
+            tr['tr'] = tr.max(axis=1)
+            df['atr_ratio'] = tr['tr'].rolling(window=14).mean() / df['close']
+        
+        # Historical volatility
+        returns = df['close'].pct_change()
+        for window in [5, 10, 20]:
+            df[f'volatility_{window}'] = returns.rolling(window=window).std()
+        
         return df
     
     def _add_volume_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Add volume-based features"""
+        # Volume ratio if not exists
+        if 'volume_ratio' not in df.columns:
+            vol_ma = df['volume'].rolling(window=20).mean()
+            df['volume_ratio'] = df['volume'] / vol_ma
+        
+        # Volume trend if not exists
+        if 'volume_trend' not in df.columns:
+            df['volume_trend'] = df['volume'].pct_change().rolling(window=5).mean()
+        
+        # Additional volume features
         df['volume_momentum'] = df['volume'] - df['volume'].shift(1)
-        df['volume_sma_5'] = df['volume'].rolling(window=5).mean()
-        df['volume_price_corr'] = df['close'].rolling(window=10).corr(df['volume'])
+        df['volume_roc'] = df['volume'].pct_change()
+        df['volume_ma_ratio'] = df['volume'] / df['volume'].rolling(window=50).mean()
+        
         return df
     
     def _add_trend_features(self, df: pd.DataFrame) -> pd.DataFrame:
-        df['sma_cross'] = np.where(
-            df['sma_20'] > df['sma_50'], 1,
-            np.where(df['sma_20'] < df['sma_50'], -1, 0)
-        )
-        df['price_sma20_ratio'] = df['close'] / df['sma_20']
-        df['adx'] = self._calculate_adx(df)
+        """Add trend-based features"""
+        # Moving averages if not exist
+        for period in [10, 20, 50]:
+            if f'sma_{period}' not in df.columns:
+                df[f'sma_{period}'] = df['close'].rolling(window=period).mean()
+        
+        # Price relative to moving averages
+        for period in [10, 20, 50]:
+            df[f'price_sma{period}_ratio'] = df['close'] / df[f'sma_{period}']
+        
+        # Trend direction
+        df['trend_short'] = np.where(df['sma_10'] > df['sma_20'], 1, -1)
+        df['trend_long'] = np.where(df['sma_20'] > df['sma_50'], 1, -1)
+        
+        # Additional trend features
+        df['price_momentum'] = df['close'] - df['close'].shift(10)
+        df['trend_strength'] = df['trend_short'] * df['trend_long']
+        
         return df
-    
-    def _calculate_adx(self, df: pd.DataFrame, period: int = 14) -> pd.Series:
-        plus_dm = df['high'].diff()
-        minus_dm = df['low'].diff()
-        plus_dm[plus_dm < 0] = 0
-        minus_dm[minus_dm > 0] = 0
-        
-        tr1 = pd.DataFrame(df['high'] - df['low'])
-        tr2 = pd.DataFrame(abs(df['high'] - df['close'].shift(1)))
-        tr3 = pd.DataFrame(abs(df['low'] - df['close'].shift(1)))
-        tr = pd.concat([tr1, tr2, tr3], axis=1, join='inner').max(axis=1)
-        atr = tr.rolling(period).mean()
-        
-        plus_di = 100 * (plus_dm.ewm(alpha=1/period).mean() / atr)
-        minus_di = abs(100 * (minus_dm.ewm(alpha=1/period).mean() / atr))
-        dx = (abs(plus_di - minus_di) / abs(plus_di + minus_di)) * 100
-        adx = ((dx.shift(1) * (period - 1)) + dx) / period
-        return adx.ewm(alpha=1/period).mean()
