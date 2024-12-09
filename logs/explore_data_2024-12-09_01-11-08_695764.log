@@ -1,0 +1,11 @@
+2024-12-09 01:11:08.697 | INFO     | __main__:main:77 - Explorando banco de dados: src/data/candles.db
+2024-12-09 01:11:08.700 | INFO     | __main__:explore_database:14 - 
+Esquema da tabela:
+2024-12-09 01:11:08.707 | INFO     | __main__:explore_database:19 - 
+Primeiras linhas:
+2024-12-09 01:11:08.723 | INFO     | __main__:explore_database:30 - 
+Período dos dados:
+2024-12-09 01:11:08.741 | INFO     | __main__:explore_database:44 - 
+Estatísticas básicas:
+2024-12-09 01:11:08.793 | INFO     | __main__:explore_database:57 - 
+Distribuição de volume por hora:

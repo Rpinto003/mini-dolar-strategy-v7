@@ -1,0 +1,29 @@
+2024-12-09 01:15:06.865 | INFO     | __main__:main:43 - Configuration loaded
+2024-12-09 01:15:06.866 | INFO     | src.data.loaders.market_data:__init__:10 - Initialized MarketDataLoader with db=src/data/candles.db, table=candles
+2024-12-09 01:15:06.867 | INFO     | src.analysis.market_structure:__init__:8 - Initialized MarketStructure with lookback_period=20
+2024-12-09 01:15:06.867 | INFO     | src.analysis.volatility:__init__:8 - Initialized VolatilityAnalyzer with atr_period=14
+2024-12-09 01:15:06.867 | INFO     | src.analysis.signals:__init__:8 - Initialized SignalGenerator with risk_free_rate=0.05
+2024-12-09 01:15:06.868 | INFO     | src.analysis.risk_management:__init__:10 - Initialized RiskManager with capital=100000, max_risk=0.005
+2024-12-09 01:15:06.874 | INFO     | src.models.metrics:__init__:8 - Initialized MetricsCalculator
+2024-12-09 01:15:06.874 | INFO     | src.analysis.feature_engineering:__init__:9 - Initialized FeatureEngineer
+2024-12-09 01:15:06.875 | INFO     | src.models.ml_model:__init__:27 - Initialized MLModel
+2024-12-09 01:15:06.875 | INFO     | src.strategy.enhanced_strategy:__init__:19 - Strategy initialized with ML capabilities
+2024-12-09 01:15:06.914 | INFO     | src.data.loaders.market_data:get_minute_data:24 - Carregados 8640 registros de 2024-06-01 00:00:00 até 2024-06-30 23:59:59
+2024-12-09 01:15:06.917 | INFO     | __main__:main:59 - Loaded 8640 data points
+2024-12-09 01:15:06.917 | INFO     | __main__:main:67 - Training ML model...
+2024-12-09 01:15:07.879 | ERROR    | src.models.ml_model:train:93 - Error training model: Cannot have number of folds=6 greater than the number of samples=4.
+2024-12-09 01:15:07.879 | INFO     | src.strategy.enhanced_strategy:train_ml_model:84 - ML model training completed
+2024-12-09 01:15:07.879 | INFO     | __main__:main:69 - Training metrics: {}
+2024-12-09 01:15:07.880 | INFO     | __main__:main:72 - Running strategy on test data...
+2024-12-09 01:15:07.881 | INFO     | src.strategy.enhanced_strategy:run:42 - Starting strategy execution with ML
+2024-12-09 01:15:08.121 | ERROR    | src.models.ml_model:predict:123 - Error generating predictions: This RandomForestClassifier instance is not fitted yet. Call 'fit' with appropriate arguments before using this estimator.
+2024-12-09 01:15:08.129 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:186 - Strategy Performance:
+2024-12-09 01:15:08.130 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:191 - ml_traditional_agreement: 0
+2024-12-09 01:15:08.130 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:191 - ml_accuracy: 0
+2024-12-09 01:15:08.131 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:191 - ml_contribution: 0
+2024-12-09 01:15:08.132 | INFO     | __main__:main:76 - 
+Strategy Performance:
+2024-12-09 01:15:08.132 | INFO     | __main__:main:81 - ml_traditional_agreement: 0
+2024-12-09 01:15:08.133 | INFO     | __main__:main:81 - ml_accuracy: 0
+2024-12-09 01:15:08.134 | INFO     | __main__:main:81 - ml_contribution: 0
+2024-12-09 01:15:08.150 | INFO     | __main__:save_results:27 - Results saved to output

@@ -1,82 +1,64 @@
-# Strategy Configuration
-
-data:
-  db_path: "src/data/candles.db"
-  table_name: "candles"
-  interval: "1min"
-
-strategy:
-  # Market structure parameters
-  lookback_period: 20
-  atr_period: 14
-  
-  # Risk parameters
-  initial_capital: 100000
-  max_risk_per_trade: 0.005  # Reduzido para 0.5% por trade
-  risk_free_rate: 0.05
-  
-  # Signal combination parameters
-  signal_weights:
-    ml_weight: 0.4  # Menor peso para ML
-    traditional_weight: 0.6  # Maior peso para sinais tradicionais
-  signal_threshold: 0.6  # Threshold mais alto para sinais
-
-# Machine Learning Configuration
-ml_model:
-  # Model parameters
-  probability_threshold: 0.75  # Threshold mais alto para reduzir falsos positivos
-  n_estimators: 200  # Mais árvores para melhor generalização
-  max_depth: 8  # Menor profundidade para evitar overfitting
-  random_state: 42
-  
-  # Training parameters
-  train_size: 0.8
-  validation_size: 0.1
-  cross_validation_splits: 5
-
-feature_engineering:
-  # Momentum features
-  roc_periods: [5, 10, 20]
-  momentum_periods: [5, 10]
-  rsi_period: 14
-  
-  # Volatility features
-  bb_period: 20
-  bb_std: 2
-  atr_smoothing: 14
-  
-  # Volume features
-  volume_ma_periods: [5, 10, 20]
-  volume_correlation_period: 10
-  min_volume_ratio: 1.2
-  
-  # Trend features
-  sma_periods: [20, 50]
-  adx_period: 14
-
-# Position Sizing Parameters
-position_sizing:
-  max_position_size: 5  # Reduzido de 10 para 5 contratos
-  position_size_atr_multiple: 1.5  # Reduzido para menor risco
-  min_spacing_bars: 30  # Aumentado para evitar overtrading
-
-# Stop Loss Parameters
-stop_loss:
-  atr_multiple: 1.5  # Reduzido para menor risco
-  trailing_stop: true
-  breakeven_level: 1.0  # ATR multiples - mais conservador
-
-# Take Profit Parameters
-take_profit:
-  target_multiple: 2  # Reduzido para mais realismo
-  partial_exit_level: 1.5  # ATR multiples - mais conservador
-  partial_exit_size: 0.5  # portion of position to exit
-
-# Backtesting Parameters
 backtest:
-  start_date: "2024-06-01 00:00:00"
-  end_date: "2024-06-30 23:59:59"
-  commission_per_contract: 2.50
-  slippage_ticks: 1
+  commission_per_contract: 2.5
+  end_date: '2024-06-30 23:59:59'
   initial_capital: 100000
   margin_requirement: 10000
+  slippage_ticks: 1
+  start_date: '2024-06-01 00:00:00'
+data:
+  db_path: src/data/candles.db
+  interval: 1min
+  table_name: candles
+feature_engineering:
+  adx_period: 14
+  atr_smoothing: 14
+  bb_period: 20
+  bb_std: 2
+  min_volume_ratio: 1.2
+  momentum_periods:
+  - 5
+  - 10
+  roc_periods:
+  - 5
+  - 10
+  - 20
+  rsi_period: 14
+  sma_periods:
+  - 20
+  - 50
+  volume_correlation_period: 10
+  volume_ma_periods:
+  - 5
+  - 10
+  - 20
+ml_model:
+  cross_validation_splits: 5
+  max_depth: 8
+  min_samples_leaf: 200
+  n_estimators: 100
+  probability_threshold: 0.6
+  random_state: 42
+  train_size: 0.8
+  validation_size: 0.1
+position_sizing:
+  max_position_size: 5
+  min_spacing_bars: 30
+  position_size_atr_multiple: 1.5
+stop_loss:
+  atr_multiple: 1.5
+  breakeven_level: 1.0
+  trailing_stop: true
+strategy:
+  atr_period: 14
+  initial_capital: 100000
+  lookback_period: 20
+  max_risk_per_trade: 0.005
+  risk_free_rate: 0.05
+  signal_threshold: 0.6
+  signal_weights:
+    ml_weight: 0.4
+    traditional_weight: 0.6
+take_profit:
+  partial_exit_level: 1.5
+  partial_exit_size: 0.5
+  target_multiple: 2

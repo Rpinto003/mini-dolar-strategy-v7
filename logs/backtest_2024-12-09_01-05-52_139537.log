@@ -1,0 +1,36 @@
+2024-12-09 01:05:52.150 | INFO     | __main__:main:24 - Configuration loaded
+2024-12-09 01:05:52.151 | INFO     | src.data.loaders.market_data:__init__:10 - Initialized MarketDataLoader with db=src/data/candles.db, table=candles
+2024-12-09 01:05:52.152 | INFO     | src.analysis.market_structure:__init__:8 - Initialized MarketStructure with lookback_period=20
+2024-12-09 01:05:52.152 | INFO     | src.analysis.volatility:__init__:8 - Initialized VolatilityAnalyzer with atr_period=14
+2024-12-09 01:05:52.153 | INFO     | src.analysis.signals:__init__:8 - Initialized SignalGenerator with risk_free_rate=0.05
+2024-12-09 01:05:52.153 | INFO     | src.analysis.risk_management:__init__:10 - Initialized RiskManager with capital=100000, max_risk=0.01
+2024-12-09 01:05:52.154 | INFO     | src.models.metrics:__init__:8 - Initialized MetricsCalculator
+2024-12-09 01:05:52.154 | INFO     | src.analysis.feature_engineering:__init__:9 - Initialized FeatureEngineer
+2024-12-09 01:05:52.155 | INFO     | src.models.ml_model:__init__:18 - Initialized MLModel
+2024-12-09 01:05:52.155 | INFO     | src.strategy.enhanced_strategy:__init__:19 - Strategy initialized with ML capabilities
+2024-12-09 01:05:52.206 | INFO     | src.data.loaders.market_data:get_minute_data:24 - Carregados 8640 registros de 2024-06-01 00:00:00 até 2024-06-30 23:59:59
+2024-12-09 01:05:52.218 | INFO     | __main__:main:40 - Loaded 8640 data points
+2024-12-09 01:05:52.221 | INFO     | __main__:main:47 - Training ML model...
+2024-12-09 01:05:53.175 | ERROR    | src.analysis.feature_engineering:create_features:21 - Error creating features: 'rsi'
+2024-12-09 01:05:53.180 | ERROR    | src.models.ml_model:prepare_features:29 - Error preparing features: "['rsi', 'macd', 'volume_ratio'] not in index"
+2024-12-09 01:05:53.181 | INFO     | src.strategy.enhanced_strategy:train_ml_model:79 - ML model training completed
+2024-12-09 01:05:53.182 | INFO     | __main__:main:49 - Training metrics: {}
+2024-12-09 01:05:53.182 | INFO     | __main__:main:52 - Running strategy on test data...
+2024-12-09 01:05:53.183 | INFO     | src.strategy.enhanced_strategy:run:42 - Starting strategy execution with ML
+2024-12-09 01:05:53.413 | ERROR    | src.analysis.feature_engineering:create_features:21 - Error creating features: 'rsi'
+2024-12-09 01:05:53.414 | ERROR    | src.models.ml_model:predict:69 - Model not trained yet
+2024-12-09 01:05:53.680 | ERROR    | src.models.metrics:calculate_trade_metrics:46 - Error calculating trade metrics: Cannot set a DataFrame with multiple columns to the single column trade_return
+2024-12-09 01:05:53.681 | ERROR    | src.models.metrics:calculate_portfolio_metrics:76 - Error calculating portfolio metrics: single positional indexer is out-of-bounds
+2024-12-09 01:05:53.684 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:155 - Strategy Performance:
+2024-12-09 01:05:53.685 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:156 - Total Trades: 0
+2024-12-09 01:05:53.685 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:157 - Win Rate: 0.00%
+2024-12-09 01:05:53.686 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:158 - Total Return: 0.00%
+2024-12-09 01:05:53.686 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:159 - Sharpe Ratio: 0.00
+2024-12-09 01:05:53.687 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:160 - ML Accuracy: 0.00%
+2024-12-09 01:05:53.687 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:161 - ML-Traditional Agreement: 0.00%
+2024-12-09 01:05:53.688 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:162 - ML Contribution: nan%
+2024-12-09 01:05:53.688 | INFO     | __main__:main:56 - 
+Strategy Performance:
+2024-12-09 01:05:53.689 | INFO     | __main__:main:59 - ml_traditional_agreement: 0.00%
+2024-12-09 01:05:53.689 | INFO     | __main__:main:59 - ml_accuracy: 0.00%
+2024-12-09 01:05:53.689 | INFO     | __main__:main:59 - ml_contribution: nan%

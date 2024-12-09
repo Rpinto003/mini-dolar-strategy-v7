@@ -16,11 +16,19 @@ class MLModel:
         
         # Features mais importantes para previsão de mercado
         self.feature_columns = [
-            'rsi', 'macd', 'macd_hist',         # Momentum
-            'volume_ratio', 'volume_trend',      # Volume
-            'atr_ratio', 'volatility_10',        # Volatilidade
-            'trend_short', 'trend_long',         # Tendência
-            'price_sma20_ratio', 'price_momentum' # Preço relativo
+            'price_sma10_ratio','price_sma20_ratio', 'price_sma50_ratio',
+            'price_position','rsi',
+            'roc_5', 'roc_10', 'roc_20',
+            'returns','price_momentum'
+            #'open', 'high', 'low', 'close', 'volume', 'g_high', 'swing_low', 'price_position', 'atr', 'returns',
+            #'historical_volatility', 'basis', 'upper_band', 'lower_band', 'rsi', 'macd', 'signal_line', 'maatr_ratio', 
+            #'price_sma20_ratio', 'price_sma50_ratio', 'signal', 'entry_price', 'entry_time', 'roc_5', 'roc_10', 'roc_20', 'volatility_5',
+            #'volume_ma_ratio', 'sma_10', 'price_sma10_ratio', 'trend_short', 'trend_long', 'price_momentum', 'trend_strength'
+            #'rsi', 'macd', 'macd_hist',         # Momentum
+            #'volume_ratio', 'volume_trend',      # Volume
+            #'atr_ratio', 'volatility_10',        # Volatilidade
+            #'trend_short', 'trend_long',         # Tendência
+            #'price_sma20_ratio', 'price_momentum' # Preço relativo
         ]
         
         # Parâmetros do modelo

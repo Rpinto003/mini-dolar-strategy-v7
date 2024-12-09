@@ -1,0 +1,31 @@
+2024-12-09 01:18:47.092 | INFO     | __main__:main:59 - Configuration loaded
+2024-12-09 01:18:47.093 | INFO     | src.data.loaders.market_data:__init__:10 - Initialized MarketDataLoader with db=src/data/candles.db, table=candles
+2024-12-09 01:18:47.094 | INFO     | src.analysis.market_structure:__init__:8 - Initialized MarketStructure with lookback_period=20
+2024-12-09 01:18:47.095 | INFO     | src.analysis.volatility:__init__:8 - Initialized VolatilityAnalyzer with atr_period=14
+2024-12-09 01:18:47.095 | INFO     | src.analysis.signals:__init__:8 - Initialized SignalGenerator with risk_free_rate=0.05
+2024-12-09 01:18:47.096 | INFO     | src.analysis.risk_management:__init__:10 - Initialized RiskManager with capital=100000, max_risk=0.005
+2024-12-09 01:18:47.102 | INFO     | src.models.metrics:__init__:8 - Initialized MetricsCalculator
+2024-12-09 01:18:47.102 | INFO     | src.analysis.feature_engineering:__init__:9 - Initialized FeatureEngineer
+2024-12-09 01:18:47.102 | INFO     | src.models.ml_model:__init__:26 - Initialized MLModel
+2024-12-09 01:18:47.103 | INFO     | src.strategy.enhanced_strategy:__init__:19 - Strategy initialized with ML capabilities
+2024-12-09 01:18:47.221 | INFO     | src.data.loaders.market_data:get_minute_data:24 - Carregados 35136 registros de 2024-06-01 00:00:00 até 2024-09-30 23:59:59
+2024-12-09 01:18:47.225 | INFO     | __main__:main:75 - Loaded 35136 data points
+2024-12-09 01:18:47.226 | INFO     | __main__:main:87 - Training ML model...
+2024-12-09 01:18:50.888 | INFO     | src.models.ml_model:prepare_features:51 - Prepared 26 samples with 6 features
+2024-12-09 01:18:50.889 | ERROR    | src.models.ml_model:train:64 - Insufficient data for training
+2024-12-09 01:18:50.889 | INFO     | src.strategy.enhanced_strategy:train_ml_model:84 - ML model training completed
+2024-12-09 01:18:50.890 | INFO     | __main__:main:94 - Running strategy on test data...
+2024-12-09 01:18:50.890 | INFO     | src.strategy.enhanced_strategy:run:42 - Starting strategy execution with ML
+2024-12-09 01:18:51.792 | ERROR    | src.models.ml_model:predict:111 - Model not trained yet
+2024-12-09 01:18:51.801 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:186 - Strategy Performance:
+2024-12-09 01:18:51.802 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:191 - ml_traditional_agreement: 0
+2024-12-09 01:18:51.803 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:191 - ml_accuracy: 0
+2024-12-09 01:18:51.804 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:191 - ml_contribution: 0
+2024-12-09 01:18:51.804 | INFO     | __main__:main:99 - 
+Strategy Performance:
+2024-12-09 01:18:51.805 | INFO     | __main__:main:104 - ml_traditional_agreement: 0
+2024-12-09 01:18:51.805 | INFO     | __main__:main:104 - ml_accuracy: 0
+2024-12-09 01:18:51.806 | INFO     | __main__:main:104 - ml_contribution: 0
+2024-12-09 01:18:51.819 | INFO     | __main__:save_results:38 - Results saved to output
+2024-12-09 01:18:51.819 | INFO     | __main__:save_results:39 - Results file: test_backtest_results_20240908.csv
+2024-12-09 01:18:51.820 | INFO     | __main__:save_results:40 - Metrics file: test_backtest_metrics_20240908.csv

@@ -1,0 +1,46 @@
+2024-12-09 10:03:30.393 | INFO     | __main__:main:59 - Configuration loaded
+2024-12-09 10:03:30.395 | INFO     | src.data.loaders.market_data:__init__:10 - Initialized MarketDataLoader with db=src/data/candles.db, table=candles
+2024-12-09 10:03:30.395 | INFO     | src.analysis.market_structure:__init__:8 - Initialized MarketStructure with lookback_period=20
+2024-12-09 10:03:30.396 | INFO     | src.analysis.volatility:__init__:8 - Initialized VolatilityAnalyzer with atr_period=14
+2024-12-09 10:03:30.397 | INFO     | src.analysis.signals:__init__:8 - Initialized SignalGenerator with risk_free_rate=0.05
+2024-12-09 10:03:30.397 | INFO     | src.analysis.risk_management:__init__:10 - Initialized RiskManager with capital=100000, max_risk=0.005
+2024-12-09 10:03:30.403 | INFO     | src.models.metrics:__init__:8 - Initialized MetricsCalculator
+2024-12-09 10:03:30.403 | INFO     | src.analysis.feature_engineering:__init__:9 - Initialized FeatureEngineer
+2024-12-09 10:03:30.404 | INFO     | src.models.ml_model:__init__:26 - Initialized MLModel
+2024-12-09 10:03:30.404 | INFO     | src.strategy.enhanced_strategy:__init__:19 - Strategy initialized with ML capabilities
+2024-12-09 10:03:30.442 | INFO     | src.data.loaders.market_data:get_minute_data:24 - Carregados 8640 registros de 2024-06-01 00:00:00 até 2024-06-30 23:59:59
+2024-12-09 10:03:30.447 | INFO     | __main__:main:75 - Loaded 8640 data points
+2024-12-09 10:03:30.448 | INFO     | __main__:main:87 - Training ML model...
+2024-12-09 10:03:31.410 | INFO     | src.strategy.enhanced_strategy:prepare_data:48 - Market structure analysis completed
+2024-12-09 10:03:31.416 | INFO     | src.strategy.enhanced_strategy:prepare_data:52 - Volatility analysis completed
+2024-12-09 10:03:31.449 | INFO     | src.strategy.enhanced_strategy:prepare_data:56 - Signal generation completed
+2024-12-09 10:03:31.458 | INFO     | src.analysis.feature_engineering:create_features:38 - Created features: ['open', 'high', 'low', 'close', 'volume', 'sma_20', 'sma_50', 'trend_direction', 'swing_high', 'swing_low', 'price_position', 'atr', 'returns', 'historical_volatility', 'basis', 'upper_band', 'lower_band', 'rsi', 'macd', 'signal_line', 'macd_hist', 'volume_ratio', 'volume_trend', 'atr_ratio', 'price_sma20_ratio', 'price_sma50_ratio', 'signal', 'entry_price', 'entry_time', 'roc_5', 'roc_10', 'roc_20', 'volatility_5', 'volatility_10', 'volatility_20', 'volume_momentum', 'volume_roc', 'volume_ma_ratio', 'sma_10', 'price_sma10_ratio', 'trend_short', 'trend_long', 'price_momentum', 'trend_strength']
+2024-12-09 10:03:31.460 | INFO     | src.strategy.enhanced_strategy:prepare_data:60 - Feature engineering completed
+2024-12-09 10:03:31.460 | INFO     | src.strategy.enhanced_strategy:train_ml_model:106 - Prepared 6912 samples for training
+2024-12-09 10:03:31.461 | INFO     | src.strategy.enhanced_strategy:train_ml_model:107 - Available features: ['open', 'high', 'low', 'close', 'volume', 'sma_20', 'sma_50', 'trend_direction', 'swing_high', 'swing_low', 'price_position', 'atr', 'returns', 'historical_volatility', 'basis', 'upper_band', 'lower_band', 'rsi', 'macd', 'signal_line', 'macd_hist', 'volume_ratio', 'volume_trend', 'atr_ratio', 'price_sma20_ratio', 'price_sma50_ratio', 'signal', 'entry_price', 'entry_time', 'roc_5', 'roc_10', 'roc_20', 'volatility_5', 'volatility_10', 'volatility_20', 'volume_momentum', 'volume_roc', 'volume_ma_ratio', 'sma_10', 'price_sma10_ratio', 'trend_short', 'trend_long', 'price_momentum', 'trend_strength']
+2024-12-09 10:03:31.502 | INFO     | src.models.ml_model:prepare_features:74 - Prepared 6911 samples with 6 features
+2024-12-09 10:03:33.388 | INFO     | src.models.ml_model:train:119 - Model training completed. Accuracy: 0.60
+2024-12-09 10:03:33.850 | INFO     | src.strategy.enhanced_strategy:train_ml_model:111 - ML model training completed
+2024-12-09 10:03:33.851 | INFO     | __main__:main:90 - Training metrics: {'accuracy': 0.6034752389226761, 'precision': 0.6385158278862232, 'recall': 0.6034752389226761, 'f1-score': 0.6136958039948897}
+2024-12-09 10:03:33.902 | INFO     | __main__:save_results:38 - Results saved to output
+2024-12-09 10:03:33.902 | INFO     | __main__:save_results:39 - Results file: train_backtest_results_20240601.csv
+2024-12-09 10:03:33.903 | INFO     | __main__:save_results:40 - Metrics file: train_backtest_metrics_20240601.csv
+2024-12-09 10:03:33.904 | INFO     | __main__:main:94 - Running strategy on test data...
+2024-12-09 10:03:33.904 | INFO     | src.strategy.enhanced_strategy:run:69 - Starting strategy execution with ML
+2024-12-09 10:03:34.127 | INFO     | src.strategy.enhanced_strategy:prepare_data:48 - Market structure analysis completed
+2024-12-09 10:03:34.132 | INFO     | src.strategy.enhanced_strategy:prepare_data:52 - Volatility analysis completed
+2024-12-09 10:03:34.148 | INFO     | src.strategy.enhanced_strategy:prepare_data:56 - Signal generation completed
+2024-12-09 10:03:34.155 | INFO     | src.analysis.feature_engineering:create_features:38 - Created features: ['open', 'high', 'low', 'close', 'volume', 'sma_20', 'sma_50', 'trend_direction', 'swing_high', 'swing_low', 'price_position', 'atr', 'returns', 'historical_volatility', 'basis', 'upper_band', 'lower_band', 'rsi', 'macd', 'signal_line', 'macd_hist', 'volume_ratio', 'volume_trend', 'atr_ratio', 'price_sma20_ratio', 'price_sma50_ratio', 'signal', 'entry_price', 'entry_time', 'roc_5', 'roc_10', 'roc_20', 'volatility_5', 'volatility_10', 'volatility_20', 'volume_momentum', 'volume_roc', 'volume_ma_ratio', 'sma_10', 'price_sma10_ratio', 'trend_short', 'trend_long', 'price_momentum', 'trend_strength']
+2024-12-09 10:03:34.157 | INFO     | src.strategy.enhanced_strategy:prepare_data:60 - Feature engineering completed
+2024-12-09 10:03:34.228 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:186 - Strategy Performance:
+2024-12-09 10:03:34.228 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:195 - ml_traditional_agreement: 0
+2024-12-09 10:03:34.229 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:193 - ml_accuracy: 2.20%
+2024-12-09 10:03:34.230 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:195 - ml_contribution: 0
+2024-12-09 10:03:34.230 | INFO     | __main__:main:99 - 
+Strategy Performance:
+2024-12-09 10:03:34.230 | INFO     | __main__:main:104 - ml_traditional_agreement: 0
+2024-12-09 10:03:34.231 | INFO     | __main__:main:102 - ml_accuracy: 2.20%
+2024-12-09 10:03:34.231 | INFO     | __main__:main:104 - ml_contribution: 0
+2024-12-09 10:03:34.313 | INFO     | __main__:save_results:38 - Results saved to output
+2024-12-09 10:03:34.314 | INFO     | __main__:save_results:39 - Results file: test_backtest_results_20240625.csv
+2024-12-09 10:03:34.314 | INFO     | __main__:save_results:40 - Metrics file: test_backtest_metrics_20240625.csv

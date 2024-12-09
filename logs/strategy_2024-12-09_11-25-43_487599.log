@@ -1,0 +1,66 @@
+2024-12-09 11:25:43.492 | INFO     | __main__:main:59 - Configuration loaded
+2024-12-09 11:25:43.493 | INFO     | src.data.loaders.market_data:__init__:10 - Initialized MarketDataLoader with db=src/data/candles.db, table=candles
+2024-12-09 11:25:43.494 | INFO     | src.analysis.market_structure:__init__:8 - Initialized MarketStructure with lookback_period=20
+2024-12-09 11:25:43.494 | INFO     | src.analysis.volatility:__init__:8 - Initialized VolatilityAnalyzer with atr_period=14
+2024-12-09 11:25:43.495 | INFO     | src.analysis.signals:__init__:8 - Initialized SignalGenerator with risk_free_rate=0.05
+2024-12-09 11:25:43.495 | INFO     | src.analysis.risk_management:__init__:10 - Initialized RiskManager with capital=100000, max_risk=0.005
+2024-12-09 11:25:43.496 | INFO     | src.models.metrics:__init__:8 - Initialized MetricsCalculator
+2024-12-09 11:25:43.496 | INFO     | src.analysis.feature_engineering:__init__:9 - Initialized FeatureEngineer
+2024-12-09 11:25:43.496 | INFO     | src.analysis.feature_analysis:__init__:14 - Initialized FeatureAnalyzer
+2024-12-09 11:25:43.497 | INFO     | src.models.ml_model:__init__:36 - Initialized MLModel
+2024-12-09 11:25:43.497 | INFO     | src.strategy.enhanced_strategy:__init__:19 - Strategy initialized with ML capabilities
+2024-12-09 11:25:43.537 | INFO     | src.data.loaders.market_data:get_minute_data:24 - Carregados 8640 registros de 2024-06-01 00:00:00 até 2024-06-30 23:59:59
+2024-12-09 11:25:43.539 | INFO     | __main__:main:75 - Loaded 8640 data points
+2024-12-09 11:25:43.540 | INFO     | __main__:main:87 - Training ML model...
+2024-12-09 11:25:44.419 | INFO     | src.strategy.enhanced_strategy:prepare_data:48 - Market structure analysis completed
+2024-12-09 11:25:44.425 | INFO     | src.strategy.enhanced_strategy:prepare_data:52 - Volatility analysis completed
+2024-12-09 11:25:44.459 | INFO     | src.strategy.enhanced_strategy:prepare_data:56 - Signal generation completed
+2024-12-09 11:25:44.470 | INFO     | src.analysis.feature_engineering:create_features:38 - Created features: ['open', 'high', 'low', 'close', 'volume', 'sma_20', 'sma_50', 'trend_direction', 'swing_high', 'swing_low', 'price_position', 'atr', 'returns', 'historical_volatility', 'basis', 'upper_band', 'lower_band', 'rsi', 'macd', 'signal_line', 'macd_hist', 'volume_ratio', 'volume_trend', 'atr_ratio', 'price_sma20_ratio', 'price_sma50_ratio', 'signal', 'entry_price', 'entry_time', 'roc_5', 'roc_10', 'roc_20', 'volatility_5', 'volatility_10', 'volatility_20', 'volume_momentum', 'volume_roc', 'volume_ma_ratio', 'sma_10', 'price_sma10_ratio', 'trend_short', 'trend_long', 'price_momentum', 'trend_strength']
+2024-12-09 11:25:44.472 | INFO     | src.strategy.enhanced_strategy:prepare_data:60 - Feature engineering completed
+2024-12-09 11:25:44.472 | INFO     | src.strategy.enhanced_strategy:train_ml_model:106 - Prepared 6912 samples for training
+2024-12-09 11:25:44.472 | INFO     | src.strategy.enhanced_strategy:train_ml_model:107 - Available features: ['open', 'high', 'low', 'close', 'volume', 'sma_20', 'sma_50', 'trend_direction', 'swing_high', 'swing_low', 'price_position', 'atr', 'returns', 'historical_volatility', 'basis', 'upper_band', 'lower_band', 'rsi', 'macd', 'signal_line', 'macd_hist', 'volume_ratio', 'volume_trend', 'atr_ratio', 'price_sma20_ratio', 'price_sma50_ratio', 'signal', 'entry_price', 'entry_time', 'roc_5', 'roc_10', 'roc_20', 'volatility_5', 'volatility_10', 'volatility_20', 'volume_momentum', 'volume_roc', 'volume_ma_ratio', 'sma_10', 'price_sma10_ratio', 'trend_short', 'trend_long', 'price_momentum', 'trend_strength']
+2024-12-09 11:25:44.552 | INFO     | src.models.ml_model:prepare_features:85 - Prepared 6911 samples with 32 features
+2024-12-09 11:25:45.161 | INFO     | src.models.ml_model:train:126 - 
+Analyzing features for fold 1...
+2024-12-09 11:25:57.166 | INFO     | src.analysis.feature_analysis:analyze_features:31 - Feature analysis plots saved to output\feature_analysis
+2024-12-09 11:25:57.962 | INFO     | src.models.ml_model:train:126 - 
+Analyzing features for fold 2...
+2024-12-09 11:26:06.987 | INFO     | src.analysis.feature_analysis:analyze_features:31 - Feature analysis plots saved to output\feature_analysis
+2024-12-09 11:26:07.861 | INFO     | src.models.ml_model:train:126 - 
+Analyzing features for fold 3...
+2024-12-09 11:26:17.037 | INFO     | src.analysis.feature_analysis:analyze_features:31 - Feature analysis plots saved to output\feature_analysis
+2024-12-09 11:26:18.029 | INFO     | src.models.ml_model:train:126 - 
+Analyzing features for fold 4...
+2024-12-09 11:26:27.809 | INFO     | src.analysis.feature_analysis:analyze_features:31 - Feature analysis plots saved to output\feature_analysis
+2024-12-09 11:26:28.959 | INFO     | src.models.ml_model:train:126 - 
+Analyzing features for fold 5...
+2024-12-09 11:26:38.808 | INFO     | src.analysis.feature_analysis:analyze_features:31 - Feature analysis plots saved to output\feature_analysis
+2024-12-09 11:26:38.886 | INFO     | src.models.ml_model:train:140 - Model training completed. Accuracy: 0.58
+2024-12-09 11:26:40.055 | INFO     | src.models.ml_model:train:144 - 
+Final feature analysis...
+2024-12-09 11:27:03.337 | INFO     | src.analysis.feature_analysis:analyze_features:31 - Feature analysis plots saved to output\feature_analysis
+2024-12-09 11:27:03.337 | INFO     | src.strategy.enhanced_strategy:train_ml_model:111 - ML model training completed
+2024-12-09 11:27:03.338 | INFO     | __main__:main:90 - Training metrics: {'accuracy': 0.585, 'precision': 0.846919503466134, 'recall': 0.585, 'f1-score': 0.6498223732688552}
+2024-12-09 11:27:03.391 | INFO     | __main__:save_results:38 - Results saved to output
+2024-12-09 11:27:03.392 | INFO     | __main__:save_results:39 - Results file: train_backtest_results_20240601.csv
+2024-12-09 11:27:03.392 | INFO     | __main__:save_results:40 - Metrics file: train_backtest_metrics_20240601.csv
+2024-12-09 11:27:03.392 | INFO     | __main__:main:94 - Running strategy on test data...
+2024-12-09 11:27:03.393 | INFO     | src.strategy.enhanced_strategy:run:69 - Starting strategy execution with ML
+2024-12-09 11:27:03.615 | INFO     | src.strategy.enhanced_strategy:prepare_data:48 - Market structure analysis completed
+2024-12-09 11:27:03.620 | INFO     | src.strategy.enhanced_strategy:prepare_data:52 - Volatility analysis completed
+2024-12-09 11:27:03.636 | INFO     | src.strategy.enhanced_strategy:prepare_data:56 - Signal generation completed
+2024-12-09 11:27:03.644 | INFO     | src.analysis.feature_engineering:create_features:38 - Created features: ['open', 'high', 'low', 'close', 'volume', 'sma_20', 'sma_50', 'trend_direction', 'swing_high', 'swing_low', 'price_position', 'atr', 'returns', 'historical_volatility', 'basis', 'upper_band', 'lower_band', 'rsi', 'macd', 'signal_line', 'macd_hist', 'volume_ratio', 'volume_trend', 'atr_ratio', 'price_sma20_ratio', 'price_sma50_ratio', 'signal', 'entry_price', 'entry_time', 'roc_5', 'roc_10', 'roc_20', 'volatility_5', 'volatility_10', 'volatility_20', 'volume_momentum', 'volume_roc', 'volume_ma_ratio', 'sma_10', 'price_sma10_ratio', 'trend_short', 'trend_long', 'price_momentum', 'trend_strength']
+2024-12-09 11:27:03.646 | INFO     | src.strategy.enhanced_strategy:prepare_data:60 - Feature engineering completed
+2024-12-09 11:27:03.647 | ERROR    | src.models.ml_model:predict:200 - Error generating predictions: "['g_high', 'maatr_ratio'] not in index"
+2024-12-09 11:27:03.661 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:186 - Strategy Performance:
+2024-12-09 11:27:03.661 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:195 - ml_traditional_agreement: 0
+2024-12-09 11:27:03.662 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:195 - ml_accuracy: 0
+2024-12-09 11:27:03.662 | INFO     | src.strategy.enhanced_strategy:_log_performance_metrics:195 - ml_contribution: 0
+2024-12-09 11:27:03.663 | INFO     | __main__:main:99 - 
+Strategy Performance:
+2024-12-09 11:27:03.663 | INFO     | __main__:main:104 - ml_traditional_agreement: 0
+2024-12-09 11:27:03.663 | INFO     | __main__:main:104 - ml_accuracy: 0
+2024-12-09 11:27:03.664 | INFO     | __main__:main:104 - ml_contribution: 0
+2024-12-09 11:27:03.748 | INFO     | __main__:save_results:38 - Results saved to output
+2024-12-09 11:27:03.749 | INFO     | __main__:save_results:39 - Results file: test_backtest_results_20240625.csv
+2024-12-09 11:27:03.749 | INFO     | __main__:save_results:40 - Metrics file: test_backtest_metrics_20240625.csv

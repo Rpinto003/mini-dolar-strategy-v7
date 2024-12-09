@@ -1,0 +1,31 @@
+2024-12-09 11:01:44.985 | INFO     | __main__:main:59 - Configuration loaded
+2024-12-09 11:01:44.987 | INFO     | src.data.loaders.market_data:__init__:10 - Initialized MarketDataLoader with db=src/data/candles.db, table=candles
+2024-12-09 11:01:44.987 | INFO     | src.analysis.market_structure:__init__:8 - Initialized MarketStructure with lookback_period=20
+2024-12-09 11:01:44.988 | INFO     | src.analysis.volatility:__init__:8 - Initialized VolatilityAnalyzer with atr_period=14
+2024-12-09 11:01:44.988 | INFO     | src.analysis.signals:__init__:8 - Initialized SignalGenerator with risk_free_rate=0.05
+2024-12-09 11:01:44.989 | INFO     | src.analysis.risk_management:__init__:10 - Initialized RiskManager with capital=100000, max_risk=0.005
+2024-12-09 11:01:44.990 | INFO     | src.models.metrics:__init__:8 - Initialized MetricsCalculator
+2024-12-09 11:01:44.990 | INFO     | src.analysis.feature_engineering:__init__:9 - Initialized FeatureEngineer
+2024-12-09 11:01:44.991 | INFO     | src.analysis.feature_analysis:__init__:14 - Initialized FeatureAnalyzer
+2024-12-09 11:01:44.991 | INFO     | src.models.ml_model:__init__:32 - Initialized MLModel
+2024-12-09 11:01:44.992 | INFO     | src.strategy.enhanced_strategy:__init__:19 - Strategy initialized with ML capabilities
+2024-12-09 11:01:45.029 | INFO     | src.data.loaders.market_data:get_minute_data:24 - Carregados 8640 registros de 2024-06-01 00:00:00 até 2024-06-30 23:59:59
+2024-12-09 11:01:45.033 | INFO     | __main__:main:75 - Loaded 8640 data points
+2024-12-09 11:01:45.034 | INFO     | __main__:main:87 - Training ML model...
+2024-12-09 11:01:45.925 | INFO     | src.strategy.enhanced_strategy:prepare_data:48 - Market structure analysis completed
+2024-12-09 11:01:45.930 | INFO     | src.strategy.enhanced_strategy:prepare_data:52 - Volatility analysis completed
+2024-12-09 11:01:45.965 | INFO     | src.strategy.enhanced_strategy:prepare_data:56 - Signal generation completed
+2024-12-09 11:01:45.975 | INFO     | src.analysis.feature_engineering:create_features:38 - Created features: ['open', 'high', 'low', 'close', 'volume', 'sma_20', 'sma_50', 'trend_direction', 'swing_high', 'swing_low', 'price_position', 'atr', 'returns', 'historical_volatility', 'basis', 'upper_band', 'lower_band', 'rsi', 'macd', 'signal_line', 'macd_hist', 'volume_ratio', 'volume_trend', 'atr_ratio', 'price_sma20_ratio', 'price_sma50_ratio', 'signal', 'entry_price', 'entry_time', 'roc_5', 'roc_10', 'roc_20', 'volatility_5', 'volatility_10', 'volatility_20', 'volume_momentum', 'volume_roc', 'volume_ma_ratio', 'sma_10', 'price_sma10_ratio', 'trend_short', 'trend_long', 'price_momentum', 'trend_strength']
+2024-12-09 11:01:45.976 | INFO     | src.strategy.enhanced_strategy:prepare_data:60 - Feature engineering completed
+2024-12-09 11:01:45.977 | INFO     | src.strategy.enhanced_strategy:train_ml_model:106 - Prepared 6912 samples for training
+2024-12-09 11:01:45.978 | INFO     | src.strategy.enhanced_strategy:train_ml_model:107 - Available features: ['open', 'high', 'low', 'close', 'volume', 'sma_20', 'sma_50', 'trend_direction', 'swing_high', 'swing_low', 'price_position', 'atr', 'returns', 'historical_volatility', 'basis', 'upper_band', 'lower_band', 'rsi', 'macd', 'signal_line', 'macd_hist', 'volume_ratio', 'volume_trend', 'atr_ratio', 'price_sma20_ratio', 'price_sma50_ratio', 'signal', 'entry_price', 'entry_time', 'roc_5', 'roc_10', 'roc_20', 'volatility_5', 'volatility_10', 'volatility_20', 'volume_momentum', 'volume_roc', 'volume_ma_ratio', 'sma_10', 'price_sma10_ratio', 'trend_short', 'trend_long', 'price_momentum', 'trend_strength']
+2024-12-09 11:01:46.008 | INFO     | src.models.ml_model:prepare_features:81 - Prepared 6911 samples with 11 features
+2024-12-09 11:01:46.609 | INFO     | src.models.ml_model:train:122 - 
+Analyzing features for fold 1...
+2024-12-09 11:01:55.104 | INFO     | src.analysis.feature_analysis:analyze_features:31 - Feature analysis plots saved to output\feature_analysis
+2024-12-09 11:01:56.066 | INFO     | src.models.ml_model:train:122 - 
+Analyzing features for fold 2...
+2024-12-09 11:02:01.991 | INFO     | src.analysis.feature_analysis:analyze_features:31 - Feature analysis plots saved to output\feature_analysis
+2024-12-09 11:02:02.788 | INFO     | src.models.ml_model:train:122 - 
+Analyzing features for fold 3...
+2024-12-09 11:02:07.688 | INFO     | src.analysis.feature_analysis:analyze_features:31 - Feature analysis plots saved to output\feature_analysis

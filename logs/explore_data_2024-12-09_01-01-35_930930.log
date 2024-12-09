@@ -1,0 +1,12 @@
+2024-12-09 01:01:35.931 | INFO     | __main__:main:64 - Explorando banco de dados: src/data/candles.db
+2024-12-09 01:01:35.935 | INFO     | __main__:explore_database:14 - 
+Esquema da tabela:
+2024-12-09 01:01:35.946 | INFO     | __main__:explore_database:19 - 
+Primeiras linhas:
+2024-12-09 01:01:35.953 | ERROR    | __main__:explore_database:50 - Erro explorando dados: Execution failed on sql '
+            SELECT 
+                MIN(datetime) as inicio,
+                MAX(datetime) as fim,
+                COUNT(*) as total_registros
+            FROM candles
+        ': no such column: datetime

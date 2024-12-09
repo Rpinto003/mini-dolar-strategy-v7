@@ -1,0 +1,11 @@
+Metadata-Version: 2.1
+Name: mini_dolar_strategy
+Version: 0.1
+Requires-Dist: pandas>=1.5.0
+Requires-Dist: numpy>=1.21.0
+Requires-Dist: scikit-learn>=1.0.0
+Requires-Dist: loguru>=0.6.0
+Requires-Dist: pyyaml>=6.0.0
+Requires-Dist: matplotlib>=3.5.0
+Requires-Dist: seaborn>=0.12.0
+Requires-Dist: pytest>=7.0.0
