@@ -19,7 +19,7 @@ class MLModel:
         ]
         
         # Model parameters
-        self.n_estimators = self.config.get('n_estimators', 100)
+        self.n_estimators = self.config.get('n_estimators', 200)
         self.max_depth = self.config.get('max_depth', 8)
         self.probability_threshold = self.config.get('probability_threshold', 0.75)
         
@@ -28,27 +28,50 @@ class MLModel:
     def prepare_features(self, data: pd.DataFrame) -> tuple:
         """Prepare features for model training/prediction"""
         try:
-            # Verificar se todas as features necessárias existem
-            missing_features = [col for col in self.feature_columns if col not in data.columns]
-            if missing_features:
-                logger.error(f"Missing features: {missing_features}")
+            # 1. Verificação inicial
+            if len(data) < 100:
+                logger.error("Dataset too small for analysis")
                 return None, None
             
-            # Select features
-            X = data[self.feature_columns].copy()
+            # 2. Seleção de features
+            available_features = [col for col in self.feature_columns if col in data.columns]
+            if not available_features:
+                logger.error("No valid features found in data")
+                return None, None
             
-            # Handle missing values
+            # 3. Preparação dos dados
+            X = data[available_features].copy()
             X = X.ffill().fillna(0)
             
-            # Scale features
-            X = self.scaler.fit_transform(X)
+            # 4. Remoção de outliers
+            for col in X.columns:
+                q1 = X[col].quantile(0.01)
+                q3 = X[col].quantile(0.99)
+                X[col] = X[col].clip(lower=q1, upper=q3)
             
-            # Create target - predict next period's direction
-            returns = data['close'].pct_change().shift(-1)
-            y = np.where(returns > 0, 1, 0)[:-1]
-            X = X[:-1]  # Remove last row as we don't have next period's return
+            # 5. Normalização
+            X = pd.DataFrame(
+                self.scaler.fit_transform(X),
+                index=X.index,
+                columns=X.columns
+            )
             
-            logger.info(f"Prepared {len(X)} samples with {len(self.feature_columns)} features")
+            # 6. Criação do target
+            returns = data['close'].pct_change()
+            volatility = returns.rolling(window=20).std()
+            threshold = volatility.mean()
+            
+            y = pd.Series(0, index=returns.index)
+            y[returns > threshold] = 1
+            y[returns < -threshold] = -1
+            y = y.shift(-1)  # Próximo período
+            
+            # 7. Remove última linha e NaNs
+            valid_idx = ~(y.isna() | X.isna().any(axis=1))
+            X = X[valid_idx]
+            y = y[valid_idx]
+            
+            logger.info(f"Prepared {len(X)} samples with {len(available_features)} features")
             return X, y
             
         except Exception as e:
@@ -58,44 +81,44 @@ class MLModel:
     def train(self, data: pd.DataFrame) -> dict:
         """Train the machine learning model"""
         try:
-            # Prepare features
+            # 1. Preparação dos dados
             X, y = self.prepare_features(data)
             if X is None or y is None or len(X) < 100:
                 logger.error("Insufficient data for training")
                 return {}
             
-            # Initialize model
+            # 2. Inicialização do modelo
             self.model = RandomForestClassifier(
                 n_estimators=self.n_estimators,
                 max_depth=self.max_depth,
                 random_state=42,
-                class_weight='balanced'
+                class_weight='balanced',
+                n_jobs=-1
             )
             
-            # Use time series cross-validation
-            n_splits = min(5, len(X) // 100)  # Ensure enough samples per fold
+            # 3. Cross-validação
+            n_splits = min(5, len(X) // 200)
             if n_splits < 2:
                 n_splits = 2
             
             tscv = TimeSeriesSplit(n_splits=n_splits)
             metrics = []
             
+            # 4. Treinamento e avaliação
             for train_idx, test_idx in tscv.split(X):
-                X_train, X_test = X[train_idx], X[test_idx]
-                y_train, y_test = y[train_idx], y[test_idx]
+                X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
+                y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
                 
-                # Train model
                 self.model.fit(X_train, y_train)
-                
-                # Evaluate
                 predictions = self.model.predict(X_test)
-                metrics.append(classification_report(y_test, predictions, output_dict=True))
+                fold_metrics = classification_report(y_test, predictions, output_dict=True)
+                metrics.append(fold_metrics)
             
-            # Calculate average metrics
+            # 5. Cálculo das métricas finais
             avg_metrics = self._average_metrics(metrics)
             logger.info(f"Model training completed. Accuracy: {avg_metrics['accuracy']:.2f}")
             
-            # Train final model on all data
+            # 6. Treinamento final
             self.model.fit(X, y)
             
             return avg_metrics
@@ -111,23 +134,39 @@ class MLModel:
                 logger.error("Model not trained yet")
                 return pd.Series(0, index=data.index)
             
-            # Prepare features
+            # 1. Preparação dos dados
             X = data[self.feature_columns].copy()
             X = X.ffill().fillna(0)
-            X = self.scaler.transform(X)
             
-            # Get probabilities
+            # 2. Remoção de outliers
+            for col in X.columns:
+                q1 = X[col].quantile(0.01)
+                q3 = X[col].quantile(0.99)
+                X[col] = X[col].clip(lower=q1, upper=q3)
+            
+            # 3. Normalização
+            X = pd.DataFrame(
+                self.scaler.transform(X),
+                index=X.index,
+                columns=X.columns
+            )
+            
+            # 4. Previsão
             probabilities = self.model.predict_proba(X)
             
-            # Convert to signals
+            # 5. Geração de sinais
             signals = pd.Series(0, index=data.index)
-            
-            # Generate signals based on probability threshold
             confidence_threshold = self.probability_threshold
-            signals[probabilities[:, 1] > confidence_threshold] = 1
-            signals[probabilities[:, 0] > confidence_threshold] = -1
             
-            return signals.astype(int)
+            up_prob = probabilities[:, 1]
+            down_prob = probabilities[:, 0]
+            
+            # Long signals
+            signals[up_prob > confidence_threshold] = 1
+            # Short signals
+            signals[down_prob > confidence_threshold] = -1
+            
+            return signals
             
         except Exception as e:
             logger.error(f"Error generating predictions: {str(e)}")
