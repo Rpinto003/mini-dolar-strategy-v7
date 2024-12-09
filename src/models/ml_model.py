@@ -5,12 +5,14 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import classification_report
 from loguru import logger
+from src.analysis.feature_analysis import FeatureAnalyzer
 
 class MLModel:
     def __init__(self, config: dict = None):
         self.config = config or {}
         self.model = None
         self.scaler = StandardScaler()
+        self.feature_analyzer = FeatureAnalyzer()
         
         # Features mais importantes para previsão de mercado
         self.feature_columns = [
@@ -107,34 +109,36 @@ class MLModel:
             metrics = []
             
             # 4. Treinamento e avaliação
+            fold = 0
             for train_idx, test_idx in tscv.split(X):
+                fold += 1
                 X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
                 y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
                 
                 # Treina modelo
                 self.model.fit(X_train, y_train)
                 
+                # Feature analysis for this fold
+                logger.info(f"\nAnalyzing features for fold {fold}...")
+                self.feature_analyzer.analyze_features(
+                    self.model,
+                    X_test,
+                    y_test
+                )
+                
                 # Avalia
                 predictions = self.model.predict(X_test)
                 fold_metrics = classification_report(y_test, predictions, output_dict=True)
                 metrics.append(fold_metrics)
-                
-                # Log de features importantes
-                feature_imp = pd.DataFrame({
-                    'feature': X.columns,
-                    'importance': self.model.feature_importances_
-                }).sort_values('importance', ascending=False)
-                
-                logger.info("\nFeature Importances:")
-                for _, row in feature_imp.iterrows():
-                    logger.info(f"{row['feature']}: {row['importance']:.4f}")
             
             # 5. Métricas finais
             avg_metrics = self._average_metrics(metrics)
             logger.info(f"Model training completed. Accuracy: {avg_metrics['accuracy']:.2f}")
             
-            # 6. Treinamento final
+            # 6. Treinamento final e análise
             self.model.fit(X, y)
+            logger.info("\nFinal feature analysis...")
+            self.feature_analyzer.analyze_features(self.model, X, y)
             
             return avg_metrics
             
@@ -180,6 +184,11 @@ class MLModel:
             # Sinal de venda se prob > threshold
             sell_prob = probabilities[:, np.where(self.model.classes_ == -1)[0][0]]
             signals[sell_prob > confidence_threshold] = -1
+            
+            # 6. Análise das features para predição
+            logger.info("\nAnalyzing features for prediction...")
+            if len(X) > 0:
+                self.feature_analyzer.analyze_features(self.model, X, signals)
             
             return signals.astype(int)
             
