@@ -1,5 +1,5 @@
 data:
-  db_path: 'data/market_data.db'
+  db_path: 'src/data/market_data.db'
   table_name: 'mini_dolar'
   interval: '1min'
 
