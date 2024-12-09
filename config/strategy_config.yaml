@@ -1,0 +1,51 @@
+# Strategy Configuration
+
+data:
+  db_path: "data/market_data.db"
+  table_name: "mini_dollar_futures"
+  interval: "1min"
+
+strategy:
+  # Market structure parameters
+  lookback_period: 20
+  
+  # Volatility parameters
+  atr_period: 14
+  
+  # Risk management parameters
+  initial_capital: 100000
+  max_risk_per_trade: 0.01
+  risk_free_rate: 0.05
+
+backtest:
+  start_date: "2024-01-01"
+  end_date: "2024-12-31"
+
+# Signal generation parameters
+signals:
+  rsi_period: 14
+  rsi_overbought: 70
+  rsi_oversold: 30
+  macd_fast: 12
+  macd_slow: 26
+  macd_signal: 9
+  volume_ratio_period: 20
+  min_volume_ratio: 1.2
+
+# Position sizing parameters
+position_sizing:
+  max_position_size: 10  # contracts
+  position_size_atr_multiple: 2
+  min_spacing_bars: 20
+
+# Stop loss parameters
+stop_loss:
+  atr_multiple: 2
+  trailing_stop: true
+  breakeven_level: 1.5  # ATR multiples
+
+# Take profit parameters
+take_profit:
+  target_multiple: 3  # risk:reward ratio
+  partial_exit_level: 2  # ATR multiples
+  partial_exit_size: 0.5  # portion of position to exit
