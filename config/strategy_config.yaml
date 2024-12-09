@@ -8,54 +8,52 @@ data:
 strategy:
   # Market structure parameters
   lookback_period: 20
-  
-  # Volatility parameters
   atr_period: 14
   
-  # Risk management parameters
+  # Risk parameters
   initial_capital: 100000
   max_risk_per_trade: 0.01
   risk_free_rate: 0.05
-
+  
   # Signal combination parameters
   signal_weights:
     ml_weight: 0.6
     traditional_weight: 0.4
   signal_threshold: 0.5
 
+# Machine Learning Configuration
 ml_model:
   # Model parameters
   probability_threshold: 0.7
   n_estimators: 100
   max_depth: 10
   random_state: 42
-
+  
   # Training parameters
-  cross_validation_splits: 5
   train_size: 0.8
   validation_size: 0.1
+  cross_validation_splits: 5
 
 feature_engineering:
-  # Technical indicator parameters
-  rsi_period: 14
-  macd_fast: 12
-  macd_slow: 26
-  macd_signal: 9
-  volume_ma_period: 20
+  # Momentum features
+  roc_periods: [5, 10, 20]
+  momentum_periods: [5, 10]
+  rsi_lookback: 5
+  
+  # Volatility features
   bb_period: 20
   bb_std: 2
+  atr_smoothing: 14
+  
+  # Volume features
+  volume_ma_periods: [5, 10, 20]
+  volume_correlation_period: 10
+  
+  # Trend features
+  sma_periods: [20, 50]
+  adx_period: 14
 
-  # Feature selection
-  use_momentum: true
-  use_volatility: true
-  use_volume: true
-  use_trend: true
-
-backtest:
-  start_date: "2024-01-01"
-  end_date: "2024-12-31"
-
-# Traditional signal parameters
+# Traditional Signal Parameters
 signals:
   rsi_period: 14
   rsi_overbought: 70
@@ -66,20 +64,29 @@ signals:
   volume_ratio_period: 20
   min_volume_ratio: 1.2
 
-# Position sizing parameters
+# Position Sizing Parameters
 position_sizing:
   max_position_size: 10  # contracts
   position_size_atr_multiple: 2
   min_spacing_bars: 20
 
-# Stop loss parameters
+# Stop Loss Parameters
 stop_loss:
   atr_multiple: 2
   trailing_stop: true
   breakeven_level: 1.5  # ATR multiples
 
-# Take profit parameters
+# Take Profit Parameters
 take_profit:
   target_multiple: 3  # risk:reward ratio
   partial_exit_level: 2  # ATR multiples
   partial_exit_size: 0.5  # portion of position to exit
+
+# Backtesting Parameters
+backtest:
+  start_date: "2024-01-01"
+  end_date: "2024-12-31"
+  commission_per_contract: 2.50
+  slippage_ticks: 1
+  initial_capital: 100000
+  margin_requirement: 10000
