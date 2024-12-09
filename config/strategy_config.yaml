@@ -17,11 +17,45 @@ strategy:
   max_risk_per_trade: 0.01
   risk_free_rate: 0.05
 
+  # Signal combination parameters
+  signal_weights:
+    ml_weight: 0.6
+    traditional_weight: 0.4
+  signal_threshold: 0.5
+
+ml_model:
+  # Model parameters
+  probability_threshold: 0.7
+  n_estimators: 100
+  max_depth: 10
+  random_state: 42
+
+  # Training parameters
+  cross_validation_splits: 5
+  train_size: 0.8
+  validation_size: 0.1
+
+feature_engineering:
+  # Technical indicator parameters
+  rsi_period: 14
+  macd_fast: 12
+  macd_slow: 26
+  macd_signal: 9
+  volume_ma_period: 20
+  bb_period: 20
+  bb_std: 2
+
+  # Feature selection
+  use_momentum: true
+  use_volatility: true
+  use_volume: true
+  use_trend: true
+
 backtest:
   start_date: "2024-01-01"
   end_date: "2024-12-31"
 
-# Signal generation parameters
+# Traditional signal parameters
 signals:
   rsi_period: 14
   rsi_overbought: 70
