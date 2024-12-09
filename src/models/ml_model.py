@@ -15,25 +15,30 @@ class MLModel:
         # Define feature columns
         self.feature_columns = [
             'rsi', 'macd', 'macd_hist', 'volume_ratio',
-            'volume_trend', 'price_sma20_ratio', 'atr_ratio',
-            'bb_width'
+            'volume_trend', 'atr_ratio'
         ]
         
         # Model parameters
         self.n_estimators = self.config.get('n_estimators', 100)
-        self.max_depth = self.config.get('max_depth', 10)
-        self.probability_threshold = self.config.get('probability_threshold', 0.7)
+        self.max_depth = self.config.get('max_depth', 8)
+        self.probability_threshold = self.config.get('probability_threshold', 0.75)
         
         logger.info("Initialized MLModel")
     
     def prepare_features(self, data: pd.DataFrame) -> tuple:
         """Prepare features for model training/prediction"""
         try:
+            # Verificar se todas as features necessárias existem
+            missing_features = [col for col in self.feature_columns if col not in data.columns]
+            if missing_features:
+                logger.error(f"Missing features: {missing_features}")
+                return None, None
+            
             # Select features
             X = data[self.feature_columns].copy()
             
             # Handle missing values
-            X = X.fillna(method='ffill').fillna(0)
+            X = X.ffill().fillna(0)
             
             # Scale features
             X = self.scaler.fit_transform(X)
@@ -43,6 +48,7 @@ class MLModel:
             y = np.where(returns > 0, 1, 0)[:-1]
             X = X[:-1]  # Remove last row as we don't have next period's return
             
+            logger.info(f"Prepared {len(X)} samples with {len(self.feature_columns)} features")
             return X, y
             
         except Exception as e:
@@ -54,7 +60,8 @@ class MLModel:
         try:
             # Prepare features
             X, y = self.prepare_features(data)
-            if X is None or y is None:
+            if X is None or y is None or len(X) < 100:
+                logger.error("Insufficient data for training")
                 return {}
             
             # Initialize model
@@ -66,7 +73,11 @@ class MLModel:
             )
             
             # Use time series cross-validation
-            tscv = TimeSeriesSplit(n_splits=5)
+            n_splits = min(5, len(X) // 100)  # Ensure enough samples per fold
+            if n_splits < 2:
+                n_splits = 2
+            
+            tscv = TimeSeriesSplit(n_splits=n_splits)
             metrics = []
             
             for train_idx, test_idx in tscv.split(X):
@@ -102,7 +113,7 @@ class MLModel:
             
             # Prepare features
             X = data[self.feature_columns].copy()
-            X = X.fillna(method='ffill').fillna(0)
+            X = X.ffill().fillna(0)
             X = self.scaler.transform(X)
             
             # Get probabilities
@@ -111,13 +122,12 @@ class MLModel:
             # Convert to signals
             signals = pd.Series(0, index=data.index)
             
-            # Long signals when probability of up move is high
-            signals[probabilities[:, 1] > self.probability_threshold] = 1
+            # Generate signals based on probability threshold
+            confidence_threshold = self.probability_threshold
+            signals[probabilities[:, 1] > confidence_threshold] = 1
+            signals[probabilities[:, 0] > confidence_threshold] = -1
             
-            # Short signals when probability of down move is high
-            signals[probabilities[:, 0] > self.probability_threshold] = -1
-            
-            return signals
+            return signals.astype(int)
             
         except Exception as e:
             logger.error(f"Error generating predictions: {str(e)}")
