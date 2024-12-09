@@ -12,16 +12,20 @@ class MLModel:
         self.model = None
         self.scaler = StandardScaler()
         
-        # Define feature columns
+        # Features mais importantes para previsão de mercado
         self.feature_columns = [
-            'rsi', 'macd', 'macd_hist', 'volume_ratio',
-            'volume_trend', 'atr_ratio'
+            'rsi', 'macd', 'macd_hist',         # Momentum
+            'volume_ratio', 'volume_trend',      # Volume
+            'atr_ratio', 'volatility_10',        # Volatilidade
+            'trend_short', 'trend_long',         # Tendência
+            'price_sma20_ratio', 'price_momentum' # Preço relativo
         ]
         
-        # Model parameters
-        self.n_estimators = self.config.get('n_estimators', 200)
-        self.max_depth = self.config.get('max_depth', 8)
-        self.probability_threshold = self.config.get('probability_threshold', 0.75)
+        # Parâmetros do modelo
+        self.n_estimators = self.config.get('n_estimators', 500)
+        self.max_depth = self.config.get('max_depth', 5)
+        self.min_samples_leaf = self.config.get('min_samples_leaf', 100)
+        self.probability_threshold = self.config.get('probability_threshold', 0.7)
         
         logger.info("Initialized MLModel")
     
@@ -29,14 +33,14 @@ class MLModel:
         """Prepare features for model training/prediction"""
         try:
             # 1. Verificação inicial
-            if len(data) < 100:
+            if len(data) < 1000:  # Precisamos de mais dados para treinar
                 logger.error("Dataset too small for analysis")
                 return None, None
             
             # 2. Seleção de features
             available_features = [col for col in self.feature_columns if col in data.columns]
-            if not available_features:
-                logger.error("No valid features found in data")
+            if len(available_features) < 6:  # Precisamos de pelo menos 6 features
+                logger.error("Insufficient features available")
                 return None, None
             
             # 3. Preparação dos dados
@@ -56,17 +60,18 @@ class MLModel:
                 columns=X.columns
             )
             
-            # 6. Criação do target
+            # 6. Target dinâmico baseado na volatilidade
             returns = data['close'].pct_change()
             volatility = returns.rolling(window=20).std()
-            threshold = volatility.mean()
+            threshold = volatility * 1.5  # 1.5 desvios padrão
             
+            # Classificação: 1 (up), 0 (sideways), -1 (down)
             y = pd.Series(0, index=returns.index)
             y[returns > threshold] = 1
             y[returns < -threshold] = -1
             y = y.shift(-1)  # Próximo período
             
-            # 7. Remove última linha e NaNs
+            # 7. Remoção de NaNs e últimas linhas
             valid_idx = ~(y.isna() | X.isna().any(axis=1))
             X = X[valid_idx]
             y = y[valid_idx]
@@ -83,7 +88,7 @@ class MLModel:
         try:
             # 1. Preparação dos dados
             X, y = self.prepare_features(data)
-            if X is None or y is None or len(X) < 100:
+            if X is None or y is None or len(X) < 1000:
                 logger.error("Insufficient data for training")
                 return {}
             
@@ -91,17 +96,14 @@ class MLModel:
             self.model = RandomForestClassifier(
                 n_estimators=self.n_estimators,
                 max_depth=self.max_depth,
+                min_samples_leaf=self.min_samples_leaf,
                 random_state=42,
                 class_weight='balanced',
                 n_jobs=-1
             )
             
             # 3. Cross-validação
-            n_splits = min(5, len(X) // 200)
-            if n_splits < 2:
-                n_splits = 2
-            
-            tscv = TimeSeriesSplit(n_splits=n_splits)
+            tscv = TimeSeriesSplit(n_splits=5, test_size=1000)
             metrics = []
             
             # 4. Treinamento e avaliação
@@ -109,12 +111,25 @@ class MLModel:
                 X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
                 y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
                 
+                # Treina modelo
                 self.model.fit(X_train, y_train)
+                
+                # Avalia
                 predictions = self.model.predict(X_test)
                 fold_metrics = classification_report(y_test, predictions, output_dict=True)
                 metrics.append(fold_metrics)
+                
+                # Log de features importantes
+                feature_imp = pd.DataFrame({
+                    'feature': X.columns,
+                    'importance': self.model.feature_importances_
+                }).sort_values('importance', ascending=False)
+                
+                logger.info("\nFeature Importances:")
+                for _, row in feature_imp.iterrows():
+                    logger.info(f"{row['feature']}: {row['importance']:.4f}")
             
-            # 5. Cálculo das métricas finais
+            # 5. Métricas finais
             avg_metrics = self._average_metrics(metrics)
             logger.info(f"Model training completed. Accuracy: {avg_metrics['accuracy']:.2f}")
             
@@ -151,22 +166,22 @@ class MLModel:
                 columns=X.columns
             )
             
-            # 4. Previsão
+            # 4. Previsão com probabilidades
             probabilities = self.model.predict_proba(X)
             
-            # 5. Geração de sinais
+            # 5. Geração de sinais com threshold mais alto
             signals = pd.Series(0, index=data.index)
             confidence_threshold = self.probability_threshold
             
-            up_prob = probabilities[:, 1]
-            down_prob = probabilities[:, 0]
+            # Sinal de compra se prob > threshold
+            buy_prob = probabilities[:, np.where(self.model.classes_ == 1)[0][0]]
+            signals[buy_prob > confidence_threshold] = 1
             
-            # Long signals
-            signals[up_prob > confidence_threshold] = 1
-            # Short signals
-            signals[down_prob > confidence_threshold] = -1
+            # Sinal de venda se prob > threshold
+            sell_prob = probabilities[:, np.where(self.model.classes_ == -1)[0][0]]
+            signals[sell_prob > confidence_threshold] = -1
             
-            return signals
+            return signals.astype(int)
             
         except Exception as e:
             logger.error(f"Error generating predictions: {str(e)}")
