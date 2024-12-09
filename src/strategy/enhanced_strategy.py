@@ -38,33 +38,56 @@ class EnhancedStrategy:
         self.feature_engineer = FeatureEngineer(config=self.config.get('feature_engineering', {}))
         self.ml_model = MLModel(config=self.config.get('ml_model', {}))
     
+    def prepare_data(self, data: pd.DataFrame) -> pd.DataFrame:
+        """Prepara os dados com todos os indicadores e features"""
+        try:
+            df = data.copy()
+            
+            # 1. Market Structure Analysis
+            df = self.market_structure.identify_structure(df)
+            logger.info("Market structure analysis completed")
+            
+            # 2. Volatility Analysis
+            df = self.volatility_analyzer.calculate_volatility(df)
+            logger.info("Volatility analysis completed")
+            
+            # 3. Signal Generation
+            df = self.signal_generator.generate_signals(df)
+            logger.info("Signal generation completed")
+            
+            # 4. Feature Engineering
+            df = self.feature_engineer.create_features(df)
+            logger.info("Feature engineering completed")
+            
+            return df
+            
+        except Exception as e:
+            logger.error(f"Error preparing data: {str(e)}")
+            return pd.DataFrame()
+    
     def run(self, data: pd.DataFrame) -> pd.DataFrame:
         logger.info("Starting strategy execution with ML")
         
         try:
-            df = data.copy()
+            # 1. Preparação dos dados
+            df = self.prepare_data(data)
+            if df.empty:
+                return pd.DataFrame()
             
-            # 1. Cálculo de indicadores
-            df = self.market_structure.identify_structure(df)
-            df = self.volatility_analyzer.calculate_volatility(df)
-            df = self.signal_generator.generate_signals(df)
-            
-            # 2. Engenharia de features
-            df = self.feature_engineer.create_features(df)
-            
-            # 3. Previsões ML
-            ml_signals = pd.Series(0, index=df.index)
+            # 2. ML Predictions
             if self.ml_model is not None:
                 ml_signals = self.ml_model.predict(df)
-            df['ml_signal'] = ml_signals
+                df['ml_signal'] = ml_signals
+            else:
+                df['ml_signal'] = 0
             
-            # 4. Combinação de sinais
+            # 3. Signal Combination
             df['final_signal'] = self._combine_signals(df)
             
-            # 5. Gerenciamento de risco
+            # 4. Risk Management
             df = self.risk_manager.apply_risk_management(df)
             
-            # 6. Cálculo de métricas
+            # 5. Calculate Metrics
             self.calculate_strategy_metrics(df)
             
             return df
@@ -75,15 +98,13 @@ class EnhancedStrategy:
     
     def train_ml_model(self, training_data: pd.DataFrame) -> Dict:
         try:
-            df = training_data.copy()
-            
             # 1. Preparação dos dados
-            df = self.market_structure.identify_structure(df)
-            df = self.volatility_analyzer.calculate_volatility(df)
-            df = self.signal_generator.generate_signals(df)
-            df = self.feature_engineer.create_features(df)
-            
+            df = self.prepare_data(training_data)
+            if df.empty:
+                return {}
+                
             logger.info(f"Prepared {len(df)} samples for training")
+            logger.info(f"Available features: {list(df.columns)}")
             
             # 2. Treinamento
             metrics = self.ml_model.train(df)
@@ -163,6 +184,10 @@ class EnhancedStrategy:
     def _log_performance_metrics(self):
         """Log key performance metrics"""
         logger.info("Strategy Performance:")
+        if not self.metrics:
+            logger.info("No metrics available")
+            return
+            
         for key, value in self.metrics.items():
             if isinstance(value, float):
                 logger.info(f"{key}: {value:.2%}")
