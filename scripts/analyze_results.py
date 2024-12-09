@@ -5,122 +5,140 @@ import seaborn as sns
 from pathlib import Path
 from loguru import logger
 
-def analyze_strategy_results(results: pd.DataFrame):
+def find_latest_results() -> tuple:
+    """Find the latest results files"""
+    output_dir = Path("output")
+    if not output_dir.exists():
+        return None, None
+    
+    # Find all results files
+    results_files = list(output_dir.glob("test_backtest_results_*.csv"))
+    metrics_files = list(output_dir.glob("test_backtest_metrics_*.csv"))
+    
+    if not results_files or not metrics_files:
+        return None, None
+    
+    # Get latest files
+    latest_results = max(results_files, key=lambda p: p.stat().st_mtime)
+    latest_metrics = max(metrics_files, key=lambda p: p.stat().st_mtime)
+    
+    return latest_results, latest_metrics
+
+def analyze_strategy_results(results_file: Path, metrics_file: Path):
     """Analyze and visualize strategy results"""
-    # Create output directory
-    output_dir = Path("analysis_output")
-    output_dir.mkdir(exist_ok=True)
+    # Create output directory for plots
+    plots_dir = Path("analysis_output")
+    plots_dir.mkdir(exist_ok=True)
     
-    # 1. Basic Performance Metrics
-    logger.info("Calculating performance metrics...")
+    # Load data
+    results = pd.read_csv(results_file, index_col=0, parse_dates=True)
+    metrics = pd.read_csv(metrics_file, index_col=0)
     
-    # Trade statistics
+    logger.info("Loaded results data:")
+    logger.info(f"Period: {results.index[0]} to {results.index[-1]}")
+    logger.info(f"Number of records: {len(results)}")
+    
+    # 1. Performance Metrics
+    logger.info("\nPerformance Metrics:")
+    for col in metrics.columns:
+        value = metrics[col].iloc[0]
+        if isinstance(value, (int, float)):
+            logger.info(f"{col}: {value:.2%}")
+        else:
+            logger.info(f"{col}: {value}")
+    
+    # 2. Trade Analysis
     trades = results[results['final_signal'] != 0].copy()
-    n_trades = len(trades)
-    if n_trades > 0:
-        winning_trades = trades[trades['trade_return'] > 0]
-        win_rate = len(winning_trades) / n_trades
-        avg_return = trades['trade_return'].mean()
+    if len(trades) > 0:
+        logger.info(f"\nTrade Analysis:")
+        logger.info(f"Total Trades: {len(trades)}")
+        logger.info(f"Average Trade Duration: {pd.Timedelta(trades.index.to_series().diff().mean())}")
         
-        logger.info(f"Total Trades: {n_trades}")
-        logger.info(f"Win Rate: {win_rate:.2%}")
-        logger.info(f"Average Return per Trade: {avg_return:.2%}")
-    
-    # Equity curve analysis
-    if 'equity' in results.columns:
-        initial_equity = results['equity'].iloc[0]
-        final_equity = results['equity'].iloc[-1]
-        total_return = (final_equity / initial_equity) - 1
-        
-        logger.info(f"Total Return: {total_return:.2%}")
-        
-        # Plot equity curve
+        # Plot trade distribution
         plt.figure(figsize=(12, 6))
+        plt.hist(trades['trade_return'] if 'trade_return' in trades.columns else [], bins=50)
+        plt.title('Trade Return Distribution')
+        plt.xlabel('Return')
+        plt.ylabel('Count')
+        plt.grid(True)
+        plt.savefig(plots_dir / 'trade_distribution.png')
+        plt.close()
+        
+        # Plot trade timing
+        plt.figure(figsize=(15, 6))
+        plt.scatter(trades.index, trades['final_signal'], alpha=0.6)
+        plt.title('Trade Entry Points')
+        plt.xlabel('Date')
+        plt.ylabel('Signal Direction')
+        plt.grid(True)
+        plt.savefig(plots_dir / 'trade_timing.png')
+        plt.close()
+    
+    # 3. Equity Curve Analysis
+    if 'equity' in results.columns:
+        # Plot equity curve
+        plt.figure(figsize=(15, 6))
         plt.plot(results.index, results['equity'])
         plt.title('Strategy Equity Curve')
         plt.xlabel('Date')
         plt.ylabel('Equity')
         plt.grid(True)
-        plt.savefig(output_dir / 'equity_curve.png')
-        plt.close()
-    
-    # 2. Trade Analysis
-    if n_trades > 0:
-        # Trade return distribution
-        plt.figure(figsize=(10, 6))
-        sns.histplot(trades['trade_return'], bins=50)
-        plt.title('Trade Return Distribution')
-        plt.xlabel('Return')
-        plt.ylabel('Count')
-        plt.savefig(output_dir / 'trade_distribution.png')
+        plt.savefig(plots_dir / 'equity_curve.png')
         plt.close()
         
-        # Trade duration analysis
-        if 'entry_time' in trades.columns:
-            trades['duration'] = pd.to_datetime(trades.index) - pd.to_datetime(trades['entry_time'])
-            avg_duration = trades['duration'].mean()
-            logger.info(f"Average Trade Duration: {avg_duration}")
+        # Calculate and plot drawdown
+        rolling_max = results['equity'].expanding().max()
+        drawdown = (results['equity'] - rolling_max) / rolling_max
+        
+        plt.figure(figsize=(15, 6))
+        plt.plot(results.index, drawdown)
+        plt.title('Portfolio Drawdown')
+        plt.xlabel('Date')
+        plt.ylabel('Drawdown')
+        plt.grid(True)
+        plt.savefig(plots_dir / 'drawdown.png')
+        plt.close()
     
-    # 3. Signal Analysis
-    if 'ml_signal' in results.columns and 'signal' in results.columns:
+    # 4. Signal Analysis
+    if all(col in results.columns for col in ['ml_signal', 'signal', 'final_signal']):
         # Signal agreement analysis
-        agreement = (results['ml_signal'] == results['signal']).mean()
-        logger.info(f"ML-Traditional Signal Agreement: {agreement:.2%}")
+        signal_agreement = (results['ml_signal'] == results['signal']).mean()
+        logger.info(f"\nSignal Analysis:")
+        logger.info(f"ML-Traditional Signal Agreement: {signal_agreement:.2%}")
         
-        # Signal contribution
+        # Plot signal distribution
+        plt.figure(figsize=(10, 6))
         signal_counts = pd.DataFrame({
             'ML': results['ml_signal'].value_counts(),
             'Traditional': results['signal'].value_counts(),
             'Final': results['final_signal'].value_counts()
         }).fillna(0)
         
-        plt.figure(figsize=(10, 6))
         signal_counts.plot(kind='bar')
         plt.title('Signal Distribution')
         plt.xlabel('Signal Type')
         plt.ylabel('Count')
-        plt.savefig(output_dir / 'signal_distribution.png')
+        plt.legend()
+        plt.grid(True)
+        plt.savefig(plots_dir / 'signal_distribution.png')
         plt.close()
     
-    # 4. Market Analysis
-    if all(col in results.columns for col in ['open', 'high', 'low', 'close']):
-        # Daily volatility
-        results['daily_returns'] = results['close'].pct_change()
-        volatility = results['daily_returns'].std() * np.sqrt(252)
-        logger.info(f"Annualized Volatility: {volatility:.2%}")
-        
+    # 5. Intraday Analysis
+    if isinstance(results.index, pd.DatetimeIndex):
         # Trading activity by hour
         results['hour'] = results.index.hour
-        trade_by_hour = results[results['final_signal'] != 0].groupby('hour').size()
+        trades_by_hour = trades.groupby('hour').size()
         
         plt.figure(figsize=(12, 6))
-        trade_by_hour.plot(kind='bar')
+        trades_by_hour.plot(kind='bar')
         plt.title('Trading Activity by Hour')
         plt.xlabel('Hour')
         plt.ylabel('Number of Trades')
-        plt.savefig(output_dir / 'trade_by_hour.png')
-        plt.close()
-    
-    # 5. Risk Analysis
-    if 'equity' in results.columns:
-        # Calculate drawdown
-        rolling_max = results['equity'].expanding().max()
-        drawdown = (results['equity'] - rolling_max) / rolling_max
-        max_drawdown = drawdown.min()
-        
-        logger.info(f"Maximum Drawdown: {max_drawdown:.2%}")
-        
-        # Plot drawdown
-        plt.figure(figsize=(12, 6))
-        drawdown.plot()
-        plt.title('Portfolio Drawdown')
-        plt.xlabel('Date')
-        plt.ylabel('Drawdown')
         plt.grid(True)
-        plt.savefig(output_dir / 'drawdown.png')
+        plt.savefig(plots_dir / 'trades_by_hour.png')
         plt.close()
     
-    logger.info(f"Analysis results saved to {output_dir}")
+    logger.info(f"\nAnalysis plots saved to {plots_dir}")
 
 def main():
     # Configure logging
@@ -130,11 +148,21 @@ def main():
         level="INFO"
     )
     
-    # Load backtest results
     try:
-        # You can modify this to load results from your preferred source
-        results = pd.read_csv('backtest_results.csv', index_col='time', parse_dates=True)
-        analyze_strategy_results(results)
+        # Find latest results
+        results_file, metrics_file = find_latest_results()
+        
+        if results_file is None or metrics_file is None:
+            logger.error("No results files found in output directory")
+            return
+        
+        logger.info(f"Analyzing results from:")
+        logger.info(f"Results: {results_file.name}")
+        logger.info(f"Metrics: {metrics_file.name}")
+        
+        # Analyze results
+        analyze_strategy_results(results_file, metrics_file)
+        
     except Exception as e:
         logger.error(f"Error analyzing results: {str(e)}")
 
