@@ -1,6 +1,6 @@
 data:
-  db_path: 'data/market_data.db'
-  table_name: 'mini_dolar'
+  db_path: "src/data/database/candles.db"
+  table_name: "candles"
   interval: '1min'
 
 backtest:

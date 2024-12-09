@@ -1,0 +1,14 @@
+2024-12-09 12:07:39.448 | INFO     | __main__:main:25 - Configuration loaded successfully
+2024-12-09 12:07:39.449 | INFO     | src.data.loaders.market_data:__init__:10 - Initialized MarketDataLoader with db=data/candles.db, table=mini_dolar
+2024-12-09 12:07:39.449 | INFO     | src.analysis.market_structure:__init__:8 - Initialized MarketStructure with lookback_period=20
+2024-12-09 12:07:39.450 | INFO     | src.analysis.volatility:__init__:8 - Initialized VolatilityAnalyzer with atr_period=14
+2024-12-09 12:07:39.450 | INFO     | src.analysis.signals:__init__:8 - Initialized SignalGenerator with risk_free_rate=0.05
+2024-12-09 12:07:39.451 | INFO     | src.analysis.risk_management:__init__:10 - Initialized RiskManager with capital=100000, max_risk=0.005
+2024-12-09 12:07:39.451 | INFO     | src.models.metrics:__init__:8 - Initialized MetricsCalculator
+2024-12-09 12:07:39.452 | INFO     | src.analysis.feature_engineering:__init__:9 - Initialized FeatureEngineer
+2024-12-09 12:07:39.452 | INFO     | src.analysis.feature_analysis:__init__:14 - Initialized FeatureAnalyzer
+2024-12-09 12:07:39.453 | INFO     | src.models.ml_model:__init__:40 - Initialized MLModel
+2024-12-09 12:07:39.454 | INFO     | src.strategy.enhanced_strategy:__init__:21 - Strategy initialized with adaptive capabilities
+2024-12-09 12:07:39.456 | ERROR    | src.data.loaders.market_data:get_minute_data:28 - Erro carregando dados: unable to open database file
+2024-12-09 12:07:39.456 | INFO     | __main__:main:41 - Loaded 0 data points for training
+2024-12-09 12:07:39.457 | ERROR    | __main__:main:57 - Error in main execution: 'EnhancedStrategy' object has no attribute 'train_ml_model'
