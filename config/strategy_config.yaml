@@ -3,7 +3,7 @@
 data:
   db_path: "src/data/candles.db"
   table_name: "candles"
-  interval: "1min"
+  interval: "5min"
 
 strategy:
   # Market structure parameters
@@ -84,8 +84,8 @@ take_profit:
 
 # Backtesting Parameters
 backtest:
-  start_date: "2023-01-01"
-  end_date: "2023-12-31"
+  start_date: "2024-06-01"
+  end_date: "2024-12-31"
   commission_per_contract: 2.50
   slippage_ticks: 1
   initial_capital: 100000

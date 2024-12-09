@@ -22,8 +22,8 @@ def explore_database(db_path: str, table_name: str):
         # Verificar período dos dados
         period = pd.read_sql(f"""
             SELECT 
-                MIN(datetime) as inicio,
-                MAX(datetime) as fim,
+                MIN(time) as inicio,
+                MAX(time) as fim,
                 COUNT(*) as total_registros
             FROM {table_name}
         """, conn)
@@ -43,6 +43,19 @@ def explore_database(db_path: str, table_name: str):
         """, conn)
         logger.info("\nEstatísticas básicas:")
         print(stats)
+        
+        # Verificar quantidade de registros por dia
+        daily_count = pd.read_sql(f"""
+            SELECT 
+                date(time) as data,
+                COUNT(*) as registros
+            FROM {table_name}
+            GROUP BY date(time)
+            ORDER BY date(time)
+            LIMIT 5
+        """, conn)
+        logger.info("\nRegistros por dia (primeiros 5 dias):")
+        print(daily_count)
         
         conn.close()
         
