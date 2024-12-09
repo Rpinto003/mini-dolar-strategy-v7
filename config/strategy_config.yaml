@@ -1,64 +1,42 @@
-backtest:
-  commission_per_contract: 2.5
-  end_date: '2024-06-30 23:59:59'
-  initial_capital: 100000
-  margin_requirement: 10000
-  slippage_ticks: 1
-  start_date: '2024-06-01 00:00:00'
 data:
-  db_path: src/data/candles.db
-  interval: 1min
-  table_name: candles
-feature_engineering:
-  adx_period: 14
-  atr_smoothing: 14
-  bb_period: 20
-  bb_std: 2
-  min_volume_ratio: 1.2
-  momentum_periods:
-  - 5
-  - 10
-  roc_periods:
-  - 5
-  - 10
-  - 20
-  rsi_period: 14
-  sma_periods:
-  - 20
-  - 50
-  volume_correlation_period: 10
-  volume_ma_periods:
-  - 5
-  - 10
-  - 20
-ml_model:
-  cross_validation_splits: 5
-  max_depth: 8
-  min_samples_leaf: 200
-  n_estimators: 100
-  probability_threshold: 0.6
-  random_state: 42
-  train_size: 0.8
-  validation_size: 0.1
-position_sizing:
-  max_position_size: 5
-  min_spacing_bars: 30
-  position_size_atr_multiple: 1.5
-stop_loss:
-  atr_multiple: 1.5
-  breakeven_level: 1.0
-  trailing_stop: true
+  db_path: 'data/market_data.db'
+  table_name: 'mini_dolar'
+  interval: '1min'
+
+backtest:
+  start_date: '2024-01-01'
+  end_date: '2024-03-31'
+
 strategy:
-  atr_period: 14
-  initial_capital: 100000
   lookback_period: 20
-  max_risk_per_trade: 0.005
+  atr_period: 14
   risk_free_rate: 0.05
+  initial_capital: 100000
+  max_risk_per_trade: 0.005
+  performance_window: 20
+  volume_window: 20
+  high_volume_threshold: 1.5
   signal_threshold: 0.6
-  signal_weights:
-    ml_weight: 0.4
-    traditional_weight: 0.6
-take_profit:
-  partial_exit_level: 1.5
-  partial_exit_size: 0.5
-  target_multiple: 2
+  high_vol_threshold: 0.7
+  low_vol_threshold: 0.5
+  
+  feature_engineering:
+    technical_indicators:
+      - rsi
+      - macd
+      - bollinger
+    price_features:
+      - returns
+      - volatility
+    volume_features:
+      - vwap
+      - volume_profile
+  
+  ml_model:
+    ensemble:
+      models:
+        - random_forest
+        - gradient_boost
+      weights:
+        random_forest: 0.5
+        gradient_boost: 0.5
