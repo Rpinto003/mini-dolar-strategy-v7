@@ -12,21 +12,21 @@ strategy:
   
   # Risk parameters
   initial_capital: 100000
-  max_risk_per_trade: 0.01
+  max_risk_per_trade: 0.005  # Reduzido para 0.5% por trade
   risk_free_rate: 0.05
   
   # Signal combination parameters
   signal_weights:
-    ml_weight: 0.6
-    traditional_weight: 0.4
-  signal_threshold: 0.5
+    ml_weight: 0.4  # Menor peso para ML
+    traditional_weight: 0.6  # Maior peso para sinais tradicionais
+  signal_threshold: 0.6  # Threshold mais alto para sinais
 
 # Machine Learning Configuration
 ml_model:
   # Model parameters
-  probability_threshold: 0.7
-  n_estimators: 100
-  max_depth: 10
+  probability_threshold: 0.75  # Threshold mais alto para reduzir falsos positivos
+  n_estimators: 200  # Mais árvores para melhor generalização
+  max_depth: 8  # Menor profundidade para evitar overfitting
   random_state: 42
   
   # Training parameters
@@ -38,7 +38,7 @@ feature_engineering:
   # Momentum features
   roc_periods: [5, 10, 20]
   momentum_periods: [5, 10]
-  rsi_lookback: 5
+  rsi_period: 14
   
   # Volatility features
   bb_period: 20
@@ -48,38 +48,28 @@ feature_engineering:
   # Volume features
   volume_ma_periods: [5, 10, 20]
   volume_correlation_period: 10
+  min_volume_ratio: 1.2
   
   # Trend features
   sma_periods: [20, 50]
   adx_period: 14
 
-# Traditional Signal Parameters
-signals:
-  rsi_period: 14
-  rsi_overbought: 70
-  rsi_oversold: 30
-  macd_fast: 12
-  macd_slow: 26
-  macd_signal: 9
-  volume_ratio_period: 20
-  min_volume_ratio: 1.2
-
 # Position Sizing Parameters
 position_sizing:
-  max_position_size: 10  # contracts
-  position_size_atr_multiple: 2
-  min_spacing_bars: 20
+  max_position_size: 5  # Reduzido de 10 para 5 contratos
+  position_size_atr_multiple: 1.5  # Reduzido para menor risco
+  min_spacing_bars: 30  # Aumentado para evitar overtrading
 
 # Stop Loss Parameters
 stop_loss:
-  atr_multiple: 2
+  atr_multiple: 1.5  # Reduzido para menor risco
   trailing_stop: true
-  breakeven_level: 1.5  # ATR multiples
+  breakeven_level: 1.0  # ATR multiples - mais conservador
 
 # Take Profit Parameters
 take_profit:
-  target_multiple: 3  # risk:reward ratio
-  partial_exit_level: 2  # ATR multiples
+  target_multiple: 2  # Reduzido para mais realismo
+  partial_exit_level: 1.5  # ATR multiples - mais conservador
   partial_exit_size: 0.5  # portion of position to exit
 
 # Backtesting Parameters
