@@ -44,18 +44,18 @@ def explore_database(db_path: str, table_name: str):
         logger.info("\nEstatísticas básicas:")
         print(stats)
         
-        # Verificar quantidade de registros por dia
-        daily_count = pd.read_sql(f"""
+        # Verificar distribuição de volume por hora do dia
+        volume_by_hour = pd.read_sql(f"""
             SELECT 
-                date(time) as data,
-                COUNT(*) as registros
+                strftime('%H', time) as hora,
+                AVG(volume) as volume_medio,
+                COUNT(*) as num_registros
             FROM {table_name}
-            GROUP BY date(time)
-            ORDER BY date(time)
-            LIMIT 5
+            GROUP BY hora
+            ORDER BY hora
         """, conn)
-        logger.info("\nRegistros por dia (primeiros 5 dias):")
-        print(daily_count)
+        logger.info("\nDistribuição de volume por hora:")
+        print(volume_by_hour)
         
         conn.close()
         
