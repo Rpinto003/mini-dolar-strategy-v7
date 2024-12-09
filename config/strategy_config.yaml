@@ -1,6 +1,6 @@
 data:
-  db_path: "src/data/database/candles.db"
-  table_name: "candles"
+  db_path: 'src/data/candles.db'
+  table_name: 'candles'
   interval: '1min'
 
 backtest:

@@ -16,9 +16,7 @@ class EnhancedStrategy:
         self.config = config or {}
         self.initialize_components()
         self.metrics = {}
-        self.performance_window = self.config.get('performance_window', 20)
-        self.signal_performance = pd.DataFrame()
-        logger.info("Strategy initialized with adaptive capabilities")
+        logger.info("Strategy initialized with ML capabilities")
     
     def initialize_components(self):
         self.market_structure = MarketStructure(
@@ -39,6 +37,29 @@ class EnhancedStrategy:
         # ML components
         self.feature_engineer = FeatureEngineer(config=self.config.get('feature_engineering', {}))
         self.ml_model = MLModel(config=self.config.get('ml_model', {}))
+
+    def train_ml_model(self, training_data: pd.DataFrame) -> Dict:
+        try:
+            # Prepare data
+            df = self.prepare_data(training_data)
+            if df.empty:
+                return {}
+                
+            logger.info(f"Prepared {len(df)} samples for training")
+            
+            # Get features and target
+            features = self.feature_engineer.get_feature_columns()
+            target = df['signal']  # Using traditional signals as training target
+            
+            # Train model
+            metrics = self.ml_model.train(df[features], target)
+            logger.info("ML model training completed")
+            
+            return metrics
+            
+        except Exception as e:
+            logger.error(f"Error training ML model: {str(e)}")
+            return {}
     
     def prepare_data(self, data: pd.DataFrame) -> pd.DataFrame:
         try:
@@ -46,17 +67,19 @@ class EnhancedStrategy:
             
             # Market Structure Analysis
             df = self.market_structure.identify_structure(df)
+            logger.info("Market structure analysis completed")
             
-            # Volatility Analysis with Dynamic Windows
+            # Volatility Analysis
             df = self.volatility_analyzer.calculate_volatility(df)
-            df['volatility_regime'] = self._determine_volatility_regime(df)
+            logger.info("Volatility analysis completed")
             
-            # Enhanced Signal Generation
+            # Signal Generation
             df = self.signal_generator.generate_signals(df)
-            df = self._add_volume_profile(df)
+            logger.info("Signal generation completed")
             
             # Feature Engineering
             df = self.feature_engineer.create_features(df)
+            logger.info("Feature engineering completed")
             
             return df
             
@@ -64,64 +87,41 @@ class EnhancedStrategy:
             logger.error(f"Error preparing data: {str(e)}")
             return pd.DataFrame()
     
-    def _determine_volatility_regime(self, data: pd.DataFrame) -> pd.Series:
-        """Determine market volatility regime"""
-        vol = data['atr'] / data['close']
-        vol_percentile = vol.rolling(window=20).apply(
-            lambda x: pd.Series(x).rank(pct=True).iloc[-1]
-        )
-        regime = pd.Series(index=data.index, data='normal')
-        regime[vol_percentile > 0.8] = 'high'
-        regime[vol_percentile < 0.2] = 'low'
-        return regime
-    
-    def _add_volume_profile(self, data: pd.DataFrame) -> pd.DataFrame:
-        """Add volume profile analysis"""
-        df = data.copy()
-        window = self.config.get('volume_window', 20)
+    def run(self, data: pd.DataFrame) -> pd.DataFrame:
+        logger.info("Starting strategy execution with ML")
         
-        df['volume_ma'] = df['volume'].rolling(window=window).mean()
-        df['vol_ratio'] = df['volume'] / df['volume_ma']
-        df['high_volume'] = df['vol_ratio'] > self.config.get('high_volume_threshold', 1.5)
-        
-        return df
-    
-    def _calculate_dynamic_position_size(self, data: pd.DataFrame) -> pd.Series:
-        """Calculate position size based on ATR and account size"""
-        risk_per_trade = self.config.get('max_risk_per_trade', 0.01)
-        account_size = self.risk_manager.get_current_capital()
-        
-        risk_amount = account_size * risk_per_trade
-        position_size = risk_amount / (data['atr'] * self.config.get('atr_multiplier', 2))
-        
-        return position_size.round(2)
-    
-    def _update_signal_weights(self, data: pd.DataFrame):
-        """Update signal weights based on recent performance"""
-        if len(self.signal_performance) < self.performance_window:
-            return self.config.get('signal_weights', {})
+        try:
+            # 1. Data preparation
+            df = self.prepare_data(data)
+            if df.empty:
+                return pd.DataFrame()
             
-        ml_accuracy = self.signal_performance['ml_profit'].rolling(
-            window=self.performance_window
-        ).mean().iloc[-1]
-        
-        trad_accuracy = self.signal_performance['trad_profit'].rolling(
-            window=self.performance_window
-        ).mean().iloc[-1]
-        
-        total = ml_accuracy + trad_accuracy
-        if total <= 0:
-            return self.config.get('signal_weights', {})
+            # 2. ML Predictions
+            features = self.feature_engineer.get_feature_columns()
+            if self.ml_model is not None:
+                ml_signals = self.ml_model.predict(df[features])
+                df['ml_signal'] = ml_signals
+            else:
+                df['ml_signal'] = 0
             
-        return {
-            'ml_weight': ml_accuracy / total,
-            'traditional_weight': trad_accuracy / total
-        }
+            # 3. Signal Combination
+            df['final_signal'] = self._combine_signals(df)
+            
+            # 4. Risk Management
+            df = self.risk_manager.apply_risk_management(df)
+            
+            # 5. Calculate Metrics
+            self.calculate_strategy_metrics(df)
+            
+            return df
+            
+        except Exception as e:
+            logger.error(f"Strategy execution error: {str(e)}")
+            return pd.DataFrame()
     
     def _combine_signals(self, data: pd.DataFrame) -> pd.Series:
-        weights = self._update_signal_weights(data)
-        ml_weight = weights.get('ml_weight', 0.4)
-        trad_weight = weights.get('traditional_weight', 0.6)
+        ml_weight = self.config.get('signal_weights', {}).get('ml_weight', 0.4)
+        trad_weight = self.config.get('signal_weights', {}).get('traditional_weight', 0.6)
         
         combined = pd.Series(0, index=data.index)
         mask = (data['ml_signal'] != 0) | (data['signal'] != 0)
@@ -132,97 +132,34 @@ class EnhancedStrategy:
                 trad_weight * data.loc[mask, 'signal'].astype(float)
             )
         
-        # Dynamic threshold based on volatility regime
-        thresholds = {
-            'high': self.config.get('high_vol_threshold', 0.7),
-            'normal': self.config.get('signal_threshold', 0.6),
-            'low': self.config.get('low_vol_threshold', 0.5)
-        }
-        
         final = pd.Series(0, index=data.index)
-        for regime in thresholds:
-            mask = data['volatility_regime'] == regime
-            threshold = thresholds[regime]
-            final.loc[mask & (combined > threshold)] = 1
-            final.loc[mask & (combined < -threshold)] = -1
+        threshold = self.config.get('signal_threshold', 0.6)
+        
+        final[combined > threshold] = 1
+        final[combined < -threshold] = -1
         
         return final
-    
-    def run(self, data: pd.DataFrame) -> pd.DataFrame:
-        logger.info("Starting enhanced strategy execution")
-        
-        try:
-            df = self.prepare_data(data)
-            if df.empty:
-                return pd.DataFrame()
-            
-            # ML Predictions with confidence
-            if self.ml_model is not None:
-                ml_signals, confidence = self.ml_model.predict_with_confidence(df)
-                df['ml_signal'] = ml_signals
-                df['ml_confidence'] = confidence
-            else:
-                df['ml_signal'] = 0
-                df['ml_confidence'] = 0
-            
-            # Signal Combination and Position Sizing
-            df['final_signal'] = self._combine_signals(df)
-            df['position_size'] = self._calculate_dynamic_position_size(df)
-            
-            # Enhanced Risk Management
-            df = self.risk_manager.apply_risk_management(df)
-            
-            # Update Performance Tracking
-            self._update_performance_tracking(df)
-            
-            # Calculate Metrics
-            self.calculate_strategy_metrics(df)
-            
-            return df
-            
-        except Exception as e:
-            logger.error(f"Strategy execution error: {str(e)}")
-            return pd.DataFrame()
-    
-    def _update_performance_tracking(self, data: pd.DataFrame):
-        """Track signal performance for weight updates"""
-        returns = data['close'].pct_change().shift(-1)
-        
-        self.signal_performance = pd.concat([
-            self.signal_performance,
-            pd.DataFrame({
-                'ml_profit': data['ml_signal'] * returns,
-                'trad_profit': data['signal'] * returns
-            })
-        ]).tail(self.performance_window * 2)
     
     def calculate_strategy_metrics(self, data: pd.DataFrame) -> Dict:
         try:
             metrics = {}
             
-            # Enhanced signal analysis
+            # Signal analysis
             signal_mask = (data['ml_signal'] != 0) & (data['signal'] != 0)
             if signal_mask.any():
                 metrics['ml_traditional_agreement'] = (
                     data.loc[signal_mask, 'ml_signal'] == 
                     data.loc[signal_mask, 'signal']
                 ).mean()
-                
-                # Add confidence-weighted metrics
-                metrics['weighted_agreement'] = (
-                    (data.loc[signal_mask, 'ml_signal'] == 
-                     data.loc[signal_mask, 'signal']) *
-                    data.loc[signal_mask, 'ml_confidence']
-                ).mean()
             
-            # Performance metrics by volatility regime
-            for regime in ['high', 'normal', 'low']:
-                mask = (data['volatility_regime'] == regime) & (data['final_signal'] != 0)
-                if mask.any():
-                    returns = data.loc[mask, 'close'].pct_change().shift(-1)
-                    metrics[f'{regime}_vol_sharpe'] = (
-                        returns.mean() / returns.std() * np.sqrt(252)
-                    )
+            # ML accuracy
+            ml_mask = data['ml_signal'] != 0
+            if ml_mask.any():
+                returns = data['close'].pct_change().shift(-1)
+                metrics['ml_accuracy'] = (
+                    ((data['ml_signal'] == 1) & (returns > 0)) |
+                    ((data['ml_signal'] == -1) & (returns < 0))
+                ).mean()
             
             self.metrics = metrics
             self._log_performance_metrics()
@@ -233,7 +170,7 @@ class EnhancedStrategy:
             return {}
     
     def _log_performance_metrics(self):
-        logger.info("Enhanced Strategy Performance:")
+        logger.info("Strategy Performance:")
         if not self.metrics:
             logger.info("No metrics available")
             return
