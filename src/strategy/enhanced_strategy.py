@@ -30,7 +30,7 @@ class EnhancedStrategy:
         )
         self.risk_manager = RiskManager(
             initial_capital=self.config.get('initial_capital', 100000),
-            max_risk_per_trade=self.config.get('max_risk_per_trade', 0.01)
+            max_risk_per_trade=self.config.get('max_risk_per_trade', 0.005)
         )
         self.metrics_calculator = MetricsCalculator()
         
@@ -44,23 +44,27 @@ class EnhancedStrategy:
         try:
             df = data.copy()
             
-            # Market analysis
+            # 1. Cálculo de indicadores
             df = self.market_structure.identify_structure(df)
             df = self.volatility_analyzer.calculate_volatility(df)
             df = self.signal_generator.generate_signals(df)
             
-            # ML pipeline
+            # 2. Engenharia de features
             df = self.feature_engineer.create_features(df)
-            ml_signals = self.ml_model.predict(df)
+            
+            # 3. Previsões ML
+            ml_signals = pd.Series(0, index=df.index)
+            if self.ml_model is not None:
+                ml_signals = self.ml_model.predict(df)
             df['ml_signal'] = ml_signals
             
-            # Combine signals
+            # 4. Combinação de sinais
             df['final_signal'] = self._combine_signals(df)
             
-            # Risk management
+            # 5. Gerenciamento de risco
             df = self.risk_manager.apply_risk_management(df)
             
-            # Performance metrics
+            # 6. Cálculo de métricas
             self.calculate_strategy_metrics(df)
             
             return df
@@ -73,13 +77,15 @@ class EnhancedStrategy:
         try:
             df = training_data.copy()
             
-            # Prepare data with indicators
+            # 1. Preparação dos dados
             df = self.market_structure.identify_structure(df)
             df = self.volatility_analyzer.calculate_volatility(df)
             df = self.signal_generator.generate_signals(df)
             df = self.feature_engineer.create_features(df)
             
-            # Train model
+            logger.info(f"Prepared {len(df)} samples for training")
+            
+            # 2. Treinamento
             metrics = self.ml_model.train(df)
             logger.info("ML model training completed")
             
@@ -90,20 +96,20 @@ class EnhancedStrategy:
             return {}
     
     def _combine_signals(self, data: pd.DataFrame) -> pd.Series:
-        ml_weight = self.config.get('signal_weights', {}).get('ml_weight', 0.5)
-        trad_weight = self.config.get('signal_weights', {}).get('traditional_weight', 0.5)
+        ml_weight = self.config.get('signal_weights', {}).get('ml_weight', 0.4)
+        trad_weight = self.config.get('signal_weights', {}).get('traditional_weight', 0.6)
         
         combined = pd.Series(0, index=data.index)
         mask = (data['ml_signal'] != 0) | (data['signal'] != 0)
         
         if mask.any():
-            combined[mask] = (
-                ml_weight * data.loc[mask, 'ml_signal'] +
-                trad_weight * data.loc[mask, 'signal']
+            combined.loc[mask] = (
+                ml_weight * data.loc[mask, 'ml_signal'].astype(float) +
+                trad_weight * data.loc[mask, 'signal'].astype(float)
             )
         
         final = pd.Series(0, index=data.index)
-        threshold = self.config.get('signal_threshold', 0.5)
+        threshold = self.config.get('signal_threshold', 0.6)
         
         final[combined > threshold] = 1
         final[combined < -threshold] = -1
@@ -112,73 +118,46 @@ class EnhancedStrategy:
     
     def calculate_strategy_metrics(self, data: pd.DataFrame) -> Dict:
         try:
-            # Calculate trade metrics
-            trades = data[data['final_signal'] != 0].copy()
-            if len(trades) > 0:
-                trade_metrics = self.metrics_calculator.calculate_trade_metrics(trades)
-                portfolio_metrics = self.metrics_calculator.calculate_portfolio_metrics(trades)
-            else:
-                trade_metrics = {}
-                portfolio_metrics = {}
+            metrics = {}
             
-            # Calculate ML-specific metrics
-            ml_metrics = self._calculate_ml_metrics(data)
-            
-            # Combine all metrics
-            self.metrics = {
-                **trade_metrics,
-                **portfolio_metrics,
-                **ml_metrics
-            }
-            
-            self._log_performance_metrics()
-            return self.metrics
-            
-        except Exception as e:
-            logger.error(f"Error calculating metrics: {str(e)}")
-            return {}
-    
-    def _calculate_ml_metrics(self, data: pd.DataFrame) -> Dict:
-        try:
-            ml_metrics = {}
-            
-            # Calculate signal agreement
+            # Signal analysis
             signal_mask = (data['ml_signal'] != 0) & (data['signal'] != 0)
             if signal_mask.any():
-                agreement = (data.loc[signal_mask, 'ml_signal'] == 
-                            data.loc[signal_mask, 'signal']).mean()
-                ml_metrics['ml_traditional_agreement'] = agreement
+                metrics['ml_traditional_agreement'] = (
+                    data.loc[signal_mask, 'ml_signal'] == 
+                    data.loc[signal_mask, 'signal']
+                ).mean()
             else:
-                ml_metrics['ml_traditional_agreement'] = 0
+                metrics['ml_traditional_agreement'] = 0
             
-            # Calculate ML accuracy
+            # ML accuracy
             ml_mask = data['ml_signal'] != 0
             if ml_mask.any():
-                returns = data['close'].pct_change()
-                ml_correct = (
+                returns = data['close'].pct_change().shift(-1)
+                metrics['ml_accuracy'] = (
                     ((data['ml_signal'] == 1) & (returns > 0)) |
                     ((data['ml_signal'] == -1) & (returns < 0))
                 ).mean()
-                ml_metrics['ml_accuracy'] = ml_correct
             else:
-                ml_metrics['ml_accuracy'] = 0
+                metrics['ml_accuracy'] = 0
             
-            # Calculate ML contribution
+            # ML contribution
             final_mask = data['final_signal'] != 0
             if final_mask.any():
-                ml_contribution = (
+                metrics['ml_contribution'] = (
                     (data.loc[final_mask, 'final_signal'] == 
                      data.loc[final_mask, 'ml_signal']).sum() /
                     final_mask.sum()
                 )
-                ml_metrics['ml_contribution'] = ml_contribution
             else:
-                ml_metrics['ml_contribution'] = 0
+                metrics['ml_contribution'] = 0
             
-            return ml_metrics
+            self.metrics = metrics
+            self._log_performance_metrics()
+            return metrics
             
         except Exception as e:
-            logger.error(f"Error calculating ML metrics: {str(e)}")
+            logger.error(f"Error calculating metrics: {str(e)}")
             return {}
     
     def _log_performance_metrics(self):
