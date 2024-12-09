@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict
 import pandas as pd
 import numpy as np
 from loguru import logger
@@ -12,17 +12,13 @@ from src.models.metrics import MetricsCalculator
 from src.models.ml_model import MLModel
 
 class EnhancedStrategy:
-    """Enhanced trading strategy implementation with machine learning capabilities"""
-    
     def __init__(self, config: Dict = None):
-        """Initialize strategy with configuration"""
         self.config = config or {}
         self.initialize_components()
         self.metrics = {}
         logger.info("Strategy initialized with ML capabilities")
     
     def initialize_components(self):
-        """Initialize strategy components with configuration"""
         self.market_structure = MarketStructure(
             lookback_period=self.config.get('lookback_period', 20)
         )
@@ -38,38 +34,33 @@ class EnhancedStrategy:
         )
         self.metrics_calculator = MetricsCalculator()
         
-        # Initialize ML components
+        # ML components
         self.feature_engineer = FeatureEngineer(config=self.config.get('feature_engineering', {}))
         self.ml_model = MLModel(config=self.config.get('ml_model', {}))
     
     def run(self, data: pd.DataFrame) -> pd.DataFrame:
-        """Execute strategy pipeline with ML integration"""
         logger.info("Starting strategy execution with ML")
         
         try:
-            # Market structure analysis
+            # Market analysis
             data = self.market_structure.identify_structure(data)
-            
-            # Volatility analysis
             data = self.volatility_analyzer.calculate_volatility(data)
             
-            # Feature engineering for ML
+            # ML pipeline
             data = self.feature_engineer.create_features(data)
-            
-            # Generate ML predictions
             ml_signals = self.ml_model.predict(data)
             data['ml_signal'] = ml_signals
             
-            # Generate traditional signals
+            # Traditional signals
             data = self.signal_generator.generate_signals(data)
             
-            # Combine ML and traditional signals
+            # Combine signals
             data['final_signal'] = self._combine_signals(data)
             
-            # Apply risk management
+            # Risk management
             data = self.risk_manager.apply_risk_management(data)
             
-            # Calculate performance metrics
+            # Performance metrics
             self.calculate_strategy_metrics(data)
             
             return data
@@ -79,14 +70,11 @@ class EnhancedStrategy:
             return pd.DataFrame()
     
     def train_ml_model(self, training_data: pd.DataFrame) -> Dict:
-        """Train the machine learning model"""
         try:
-            # Prepare features
             data = self.market_structure.identify_structure(training_data)
             data = self.volatility_analyzer.calculate_volatility(data)
             data = self.feature_engineer.create_features(data)
             
-            # Train model
             metrics = self.ml_model.train(data)
             logger.info("ML model training completed")
             
@@ -97,40 +85,29 @@ class EnhancedStrategy:
             return {}
     
     def _combine_signals(self, data: pd.DataFrame) -> pd.Series:
-        """Combine ML and traditional signals with weights"""
-        # Get signal weights from config
         ml_weight = self.config.get('signal_weights', {}).get('ml_weight', 0.5)
-        traditional_weight = self.config.get('signal_weights', {}).get('traditional_weight', 0.5)
+        trad_weight = self.config.get('signal_weights', {}).get('traditional_weight', 0.5)
         
-        # Combine signals
-        combined_signal = (
+        combined = (
             ml_weight * data['ml_signal'] +
-            traditional_weight * data['signal']
+            trad_weight * data['signal']
         )
         
-        # Convert to discrete signals
-        final_signal = pd.Series(0, index=data.index)
-        signal_threshold = self.config.get('signal_threshold', 0.5)
+        final = pd.Series(0, index=data.index)
+        threshold = self.config.get('signal_threshold', 0.5)
         
-        final_signal[combined_signal > signal_threshold] = 1
-        final_signal[combined_signal < -signal_threshold] = -1
+        final[combined > threshold] = 1
+        final[combined < -threshold] = -1
         
-        return final_signal
+        return final
     
     def calculate_strategy_metrics(self, data: pd.DataFrame) -> Dict:
-        """Calculate strategy performance metrics"""
         try:
-            # Calculate trade metrics
             trades = data[data['final_signal'] != 0].copy()
             trade_metrics = self.metrics_calculator.calculate_trade_metrics(trades)
-            
-            # Calculate portfolio metrics
             portfolio_metrics = self.metrics_calculator.calculate_portfolio_metrics(trades)
-            
-            # Calculate ML-specific metrics
             ml_metrics = self._calculate_ml_metrics(data)
             
-            # Combine all metrics
             self.metrics = {
                 **trade_metrics,
                 **portfolio_metrics,
@@ -145,20 +122,27 @@ class EnhancedStrategy:
             return {}
     
     def _calculate_ml_metrics(self, data: pd.DataFrame) -> Dict:
-        """Calculate ML-specific performance metrics"""
         try:
             ml_metrics = {}
             
-            # Calculate signal agreement rate
+            # Signal agreement between ML and traditional
             agreement = (data['ml_signal'] == data['signal']).mean()
             ml_metrics['ml_traditional_agreement'] = agreement
             
-            # Calculate ML signal contribution
+            # ML prediction accuracy
+            returns = data['close'].pct_change()
             ml_correct = (
-                (data['ml_signal'] == 1) & (data['returns'] > 0) |
-                (data['ml_signal'] == -1) & (data['returns'] < 0)
+                ((data['ml_signal'] == 1) & (returns > 0)) |
+                ((data['ml_signal'] == -1) & (returns < 0))
             ).mean()
             ml_metrics['ml_accuracy'] = ml_correct
+            
+            # ML contribution to final signals
+            ml_contribution = (
+                (data['final_signal'] == data['ml_signal']).sum() /
+                (data['final_signal'] != 0).sum()
+            )
+            ml_metrics['ml_contribution'] = ml_contribution
             
             return ml_metrics
             
@@ -175,3 +159,4 @@ class EnhancedStrategy:
         logger.info(f"Sharpe Ratio: {self.metrics.get('sharpe_ratio', 0):.2f}")
         logger.info(f"ML Accuracy: {self.metrics.get('ml_accuracy', 0):.2%}")
         logger.info(f"ML-Traditional Agreement: {self.metrics.get('ml_traditional_agreement', 0):.2%}")
+        logger.info(f"ML Contribution: {self.metrics.get('ml_contribution', 0):.2%}")
