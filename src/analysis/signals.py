@@ -20,8 +20,8 @@ class SignalGenerator:
             # Generate signals based on combined indicators
             df['signal'] = self._combine_signals(df)
             
-            # Filter signals based on market conditions
-            df['signal'] = self._filter_signals(df)
+            # Add entry prices for trades
+            df['entry_price'] = np.where(df['signal'] != 0, df['close'], np.nan)
             
             return df
             
@@ -34,6 +34,7 @@ class SignalGenerator:
         delta = df['close'].diff()
         gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
         loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
+        
         rs = gain / loss
         df['rsi'] = 100 - (100 / (1 + rs))
         return df
@@ -57,7 +58,6 @@ class SignalGenerator:
         
         # Long signals
         long_condition = (
-            (df['trend_direction'] == 1) &
             (df['rsi'] < 70) &
             (df['macd'] > df['signal_line']) &
             (df['volume_ratio'] > 1.2)
@@ -65,7 +65,6 @@ class SignalGenerator:
         
         # Short signals
         short_condition = (
-            (df['trend_direction'] == -1) &
             (df['rsi'] > 30) &
             (df['macd'] < df['signal_line']) &
             (df['volume_ratio'] > 1.2)
@@ -73,28 +72,5 @@ class SignalGenerator:
         
         signals[long_condition] = 1
         signals[short_condition] = -1
-        
-        return signals
-    
-    def _filter_signals(self, df: pd.DataFrame) -> pd.Series:
-        """Filter signals based on market conditions"""
-        signals = df['signal'].copy()
-        
-        # Filter out signals in extreme price positions
-        signals[df['price_position'] > 0.9] = 0  # Too high
-        signals[df['price_position'] < 0.1] = 0  # Too low
-        
-        # Ensure minimum spacing between signals
-        min_spacing = 20  # bars
-        last_signal = 0
-        last_signal_idx = 0
-        
-        for i in range(len(signals)):
-            if signals.iloc[i] != 0:
-                if i - last_signal_idx < min_spacing:
-                    signals.iloc[i] = 0
-                else:
-                    last_signal = signals.iloc[i]
-                    last_signal_idx = i
         
         return signals
